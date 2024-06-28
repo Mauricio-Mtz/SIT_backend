@@ -58,23 +58,81 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+  
+  async obtenerTodas() {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(`
+        SELECT
+          ot.id,
+          ot.folio,
+          ot.marca,
+          ot.modelo,
+          ot.tipo,
+          ot.año,
+          ot.fecha_inicio,
+          ot.fecha_diagnostico,
+          ot.fecha_cotizacion,
+          ot.fecha_seleccion_servicio,
+          ot.fecha_seleccion_refacciones,
+          ot.fecha_reparacion,
+          ot.fecha_confirmacion,
+          ot.fecha_fin,
+          ot.estado,
+          ot.cliente_id,
+          ot.empleado_id,
+          ot.sucursal_id,
+          c.nombre AS nombre_cliente,
+          c.apellido AS apellido_cliente,
+          c.telefono AS telefono_cliente,
+          c.correo AS correo_cliente
+        FROM orden_trabajo ot
+        INNER JOIN cliente c ON ot.cliente_id = c.id
+      `);
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
 
-  async siguientePaso(ordenId, fecha, proceso, estado, serviciosSeleccionados, refaccionesOrden) {
+  async siguientePaso(
+    ordenId,
+    fecha,
+    proceso,
+    estado,
+    serviciosSeleccionados,
+    refaccionesOrden
+  ) {
     await this.connect();
     const connection = this.connection;
-    
+
     try {
       await connection.beginTransaction();
-  
-      await connection.execute(
-        `
-        UPDATE orden_trabajo
-        SET estado = ?, fecha_${proceso} = ?
-        WHERE id = ?
-        `,
-        [estado, fecha, ordenId]
-      );
-  
+
+      if (estado === "Completado") {
+        // Si el estado es "Completado", actualiza ambas fechas
+        await connection.execute(
+          `
+          UPDATE orden_trabajo
+          SET estado = ?, fecha_${proceso} = ?, fecha_fin = ?
+          WHERE id = ?
+          `,
+          [estado, fecha, new Date(), ordenId]
+        );
+      } else {
+        // Si no es "Completado", actualiza solo la fecha correspondiente
+        await connection.execute(
+          `
+          UPDATE orden_trabajo
+          SET estado = ?, fecha_${proceso} = ?
+          WHERE id = ?
+          `,
+          [estado, fecha, ordenId]
+        );
+      }
+
       if (serviciosSeleccionados && serviciosSeleccionados.length > 0) {
         for (const servicioId of serviciosSeleccionados) {
           await connection.execute(
@@ -86,7 +144,7 @@ class OrdenTrabajoModel {
           );
         }
       }
-  
+
       if (refaccionesOrden && refaccionesOrden.length > 0) {
         for (const { id: refaccionId, cantidad } of refaccionesOrden) {
           await connection.execute(
@@ -98,7 +156,7 @@ class OrdenTrabajoModel {
           );
         }
       }
-  
+
       await connection.commit();
     } catch (error) {
       await connection.rollback();
@@ -108,39 +166,82 @@ class OrdenTrabajoModel {
     }
   }
 
-async obtenerDetallesCotizacion(ordenId) {
-  await this.connect();
-  try {
-    const [servicios] = await this.connection.execute(
-      `
-      SELECT s.id, s.nombre, s.precio
-      FROM servicio s
-      INNER JOIN servicio_orden so ON s.id = so.servicio_id
-      WHERE so.orden_id = ?
-      `,
-      [ordenId]
-    );
-
-    const [refacciones] = await this.connection.execute(
-      `
-      SELECT r.id, r.descripcion, r.precio, ro.cantidad
-      FROM refaccion r
-      INNER JOIN refaccion_orden ro ON r.id = ro.refaccion_id
-      WHERE ro.orden_id = ?
-      `,
-      [ordenId]
-    );
-
-    return { servicios, refacciones };
-  } catch (error) {
-    throw error; // Lanza la excepción para manejarla en otro lugar
-  } finally {
-    await this.disconnect();
+  async anteriorPaso(ordenId, estado) {
+    await this.connect();
+    const connection = this.connection;
+  
+    try {
+      await connection.beginTransaction();
+  
+      await connection.execute(
+        `
+        UPDATE orden_trabajo
+        SET estado = ?, fecha_reparacion = null
+        WHERE id = ?
+        `,
+        [estado, ordenId]
+      );
+  
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
   }
-}
+  
 
-  
-  
+  async obtenerDetallesCotizacion(ordenId) {
+    await this.connect();
+    try {
+      const [servicios] = await this.connection.execute(
+        `
+        SELECT s.id, s.nombre, s.precio
+        FROM servicio s
+        INNER JOIN servicio_orden so ON s.id = so.servicio_id
+        WHERE so.orden_id = ?
+        `,
+        [ordenId]
+      );
+
+      const [refacciones] = await this.connection.execute(
+        `
+        SELECT r.id, r.descripcion, r.precio, ro.cantidad
+        FROM refaccion r
+        INNER JOIN refaccion_orden ro ON r.id = ro.refaccion_id
+        WHERE ro.orden_id = ?
+        `,
+        [ordenId]
+      );
+
+      return { servicios, refacciones };
+    } catch (error) {
+      throw error; // Lanza la excepción para manejarla en otro lugar
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async verificarContrasena(clave) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(
+        `
+        SELECT COUNT(*) AS count
+        FROM empleado
+        WHERE clave = ? AND puesto = 'administrador'
+        `,
+        [clave]
+      );
+
+      return results[0].count > 0;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
 }
 
 module.exports = OrdenTrabajoModel;
