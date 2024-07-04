@@ -102,8 +102,43 @@ class OrdenTrabajoController {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
-  
-  
+
+  async serviciosPorOrden(req, res) {
+    try {
+      const servicios = await this.ordenTrabajoModel.serviciosPorOrden(req.params.folio);
+      res.status(200).json(servicios);
+    } catch (error) {
+      console.error('Error al obtener los servicios:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async createOrdenTrabajo(req, res) {
+    const { nombre, apellido, correo, telefono, marca, modelo, año, tipo, cliente_id, servicios, sucursal_id, empleado_id } = req.body;
+
+    const ordenTrabajo = {
+      nombre,
+      apellido,
+      correo,
+      telefono, 
+      marca,
+      modelo,
+      tipo,
+      año,
+      cliente_id,
+      sucursal_id,
+      empleado_id,
+      servicios,
+    };
+
+    try {
+      const ordenId = await this.ordenTrabajoModel.createOrdenTrabajo(ordenTrabajo);
+      res.status(201).json({ message: 'Orden de trabajo creada exitosamente', ordenId });
+    } catch (error) {
+      console.error('Error al crear la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
 }
 
 module.exports = new OrdenTrabajoController();

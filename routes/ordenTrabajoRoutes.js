@@ -9,5 +9,7 @@ router.post('/siguientePaso', ordenTrabajoController.siguientePaso.bind(ordenTra
 router.post('/anteriorPaso', ordenTrabajoController.anteriorPaso.bind(ordenTrabajoController));
 router.get('/obtenerDetallesCotizacion/:id', ordenTrabajoController.obtenerDetallesCotizacion.bind(ordenTrabajoController));
 router.post('/verificarContrasena', ordenTrabajoController.verificarContrasena.bind(ordenTrabajoController));
+router.get('/serviciosPorOrden/:id', ordenTrabajoController.serviciosPorOrden.bind(ordenTrabajoController));
+router.post('/registrar', ordenTrabajoController.createOrdenTrabajo.bind(ordenTrabajoController));
 
 module.exports = router;

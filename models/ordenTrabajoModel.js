@@ -19,36 +19,11 @@ class OrdenTrabajoModel {
   async obtenerPorEmpleado(empleado_id) {
     await this.connect();
     try {
-      const [results] = await this.connection.execute(
-        `
-        SELECT
-          ot.id,
-          ot.folio,
-          ot.marca,
-          ot.modelo,
-          ot.tipo,
-          ot.año,
-          ot.fecha_inicio,
-          ot.fecha_diagnostico,
-          ot.fecha_cotizacion,
-          ot.fecha_seleccion_servicio,
-          ot.fecha_seleccion_refacciones,
-          ot.fecha_reparacion,
-          ot.fecha_confirmacion,
-          ot.fecha_fin,
-          ot.estado,
-          ot.cliente_id,
-          ot.empleado_id,
-          ot.sucursal_id,
-          c.nombre AS nombre_cliente,
-          c.apellido AS apellido_cliente,
-          c.telefono AS telefono_cliente,
-          c.correo AS correo_cliente
-        FROM orden_trabajo ot
-        INNER JOIN cliente c ON ot.cliente_id = c.id
-        WHERE ot.empleado_id = ?
-      `,
-        [empleado_id]
+      const [results] = await this.connection.execute(`
+        SELECT *
+        FROM orden_trabajo
+        WHERE empleado_id = ?
+      `,[empleado_id]
       );
 
       return results;
@@ -63,31 +38,8 @@ class OrdenTrabajoModel {
     await this.connect();
     try {
       const [results] = await this.connection.execute(`
-        SELECT
-          ot.id,
-          ot.folio,
-          ot.marca,
-          ot.modelo,
-          ot.tipo,
-          ot.año,
-          ot.fecha_inicio,
-          ot.fecha_diagnostico,
-          ot.fecha_cotizacion,
-          ot.fecha_seleccion_servicio,
-          ot.fecha_seleccion_refacciones,
-          ot.fecha_reparacion,
-          ot.fecha_confirmacion,
-          ot.fecha_fin,
-          ot.estado,
-          ot.cliente_id,
-          ot.empleado_id,
-          ot.sucursal_id,
-          c.nombre AS nombre_cliente,
-          c.apellido AS apellido_cliente,
-          c.telefono AS telefono_cliente,
-          c.correo AS correo_cliente
-        FROM orden_trabajo ot
-        INNER JOIN cliente c ON ot.cliente_id = c.id
+        SELECT *
+        FROM orden_trabajo
       `);
       return results;
     } catch (error) {
@@ -97,14 +49,7 @@ class OrdenTrabajoModel {
     }
   }
 
-  async siguientePaso(
-    ordenId,
-    fecha,
-    proceso,
-    estado,
-    serviciosSeleccionados,
-    refaccionesOrden
-  ) {
+  async siguientePaso(ordenId,fecha,proceso,estado,serviciosSeleccionados,refaccionesOrden) {
     await this.connect();
     const connection = this.connection;
 
@@ -191,7 +136,6 @@ class OrdenTrabajoModel {
     }
   }
   
-
   async obtenerDetallesCotizacion(ordenId) {
     await this.connect();
     try {
@@ -242,6 +186,95 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+
+  async serviciosPorOrden(folio) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(
+        `
+        SELECT *
+        FROM servicio_orden
+        WHERE orden_id = ?
+      `,
+        [folio]
+      );
+
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async createOrdenTrabajo(ordenTrabajo) {
+    await this.connect();
+    const connection = this.connection;
+
+    try {
+      await connection.beginTransaction();
+
+      // Obtener el último folio de la tabla orden_trabajo
+      const [folios] = await connection.execute(
+        "SELECT MAX(folio) AS ultimoFolio FROM orden_trabajo"
+      );
+
+      const ultimoFolio = folios[0].ultimoFolio;
+
+      // Generar el nuevo folio
+      let nuevoFolio;
+      if (ultimoFolio) {
+        const ultimoNumero = parseInt(ultimoFolio.slice(2)); // Extraer el número del folio
+        const nuevoNumero = ultimoNumero + 1;
+        nuevoFolio = `OT${nuevoNumero.toString().padStart(3, '0')}`; // Formatear el nuevo folio
+      } else {
+        nuevoFolio = 'OT000'; // Primer folio
+      }
+
+      const [result] = await connection.execute(
+        `
+        INSERT INTO orden_trabajo (folio, nombre, apellido, correo, telefono, marca, modelo, tipo, año, fecha_inicio, estado, cliente_id, empleado_id, sucursal_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), 'Diagnostico pendiente', ?, ?, ?)
+        `,
+        [
+          nuevoFolio,
+          ordenTrabajo.nombre,
+          ordenTrabajo.apellido,
+          ordenTrabajo.correo,
+          ordenTrabajo.telefono,
+          ordenTrabajo.marca,
+          ordenTrabajo.modelo,
+          ordenTrabajo.tipo,
+          ordenTrabajo.año,
+          ordenTrabajo.cliente_id,
+          ordenTrabajo.empleado_id,
+          ordenTrabajo.sucursal_id,
+        ]
+      );
+
+      const ordenId = result.insertId;
+      
+      // Insertar los registros en la tabla servicio_orden
+      for (const servicioId of ordenTrabajo.servicios) {
+        await connection.execute(
+          `
+          INSERT INTO servicio_orden (orden_id, servicio_id)
+          VALUES (?, ?)
+          `,
+          [ordenId, servicioId]
+        );
+      }
+
+      await connection.commit();
+      return ordenId;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
 }
 
 module.exports = OrdenTrabajoModel;
