@@ -37,6 +37,7 @@ class CitaModel {
                 servicio.nombre AS servicio,
                 cita.status,
                 cita.cliente_id,
+                cita.vehiculo_id,
                 cita.sucursal_id,
                 cita.servicio_id
             FROM cita
@@ -115,12 +116,12 @@ class CitaModel {
 
   async crearCita(cita) {
     await this.connect();
-    const { nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id = null, sucursal_id, servicios } = cita;
+    const { nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id = null, vehiculo_id = null, sucursal_id, servicios } = cita;
     try {
         // Insertar la cita en la tabla cita
         const [result] = await this.connection.execute(
-            "INSERT INTO cita (nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, sucursal_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, sucursal_id]
+            "INSERT INTO cita (nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, vehiculo_id, sucursal_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, vehiculo_id, sucursal_id]
         );
 
         // Obtener el ID de la cita recién insertada
@@ -188,56 +189,55 @@ class CitaModel {
         await this.disconnect();
     }
   }
-
-  async crearOrdenTrabajo({ citaId, folio, marca, modelo, año, tipo, cliente_id, empleado_id, sucursal_id }) {
+  
+  async crearCliente({ nombre, apellido, numero, correo }) {
     await this.connect();
     try {
-      let nombre = null;
-      let apellido = null;
-      let telefono = null;
-      let correo = null;
-      let direccion = null;
-      let codigo_postal = null;
-      let rfc = null;
+      // Obtener el folio máximo actual y sumarle 1 para el nuevo folio
+      const [rows] = await this.connection.execute(
+        'SELECT IFNULL(MAX(folio), 9999999) + 1 AS nuevo_folio FROM cliente'
+      );
+      const nuevoFolio = rows[0].nuevo_folio;
   
-      // Si cliente_id tiene valor, obtener los datos del cliente
-      if (cliente_id) {
-        const [cliente] = await this.connection.execute(
-          "SELECT nombre, apellido, direccion, codigo_postal, correo, telefono, rfc FROM cliente WHERE id = ?",
-          [cliente_id]
+      // Insertar el nuevo cliente en la base de datos
+      const [result] = await this.connection.execute(
+        'INSERT INTO cliente (folio, nombre, apellido, telefono, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?)',
+        [nuevoFolio, nombre, apellido, numero, correo, nuevoFolio]
+      );
+  
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+    async crearVehiculo({marca, modelo, tipo, año, cliente}) {
+      await this.connect();
+      try {  
+        // Insertar el nuevo vehiculo en la base de datos
+        const [result] = await this.connection.execute(
+          'INSERT INTO vehiculo (marca, modelo, tipo, año, cliente_id) VALUES (?, ?, ?, ?, ?)',
+          [marca, modelo, tipo, año, cliente]
         );
-  
-        if (cliente.length > 0) {
-          nombre = cliente[0].nombre;
-          apellido = cliente[0].apellido;
-          correo = cliente[0].correo;
-          telefono = cliente[0].telefono;
-          direccion = cliente[0].direccion;
-          codigo_postal = cliente[0].codigo_postal;
-          rfc = cliente[0].rfc;
-        } else {
-          throw new Error('Cliente no encontrado');
-        }
-      } else {
-        const [cliente] = await this.connection.execute(
-          "SELECT nombre, apellido, correo, numero FROM cita WHERE id = ?",
-          [citaId]
-        );
-  
-        if (cliente.length > 0) {
-          nombre = cliente[0].nombre;
-          apellido = cliente[0].apellido;
-          correo = cliente[0].correo;
-          telefono = cliente[0].numero;
-        } else {
-          throw new Error('Cliente no encontrado');
-        }
+    
+        return result.insertId;
+      } catch (error) {
+        throw error;
+      } finally {
+        await this.disconnect();
       }
+    }
+
+  async crearOrdenTrabajo({ folio, cliente_id, vehiculo_id, empleado_id, sucursal_id }) {
+    await this.connect();
+    try {
   
       // Insertar la orden de trabajo en la tabla orden_trabajo
       const [result] = await this.connection.execute(
-        "INSERT INTO orden_trabajo (folio, nombre, apellido, correo, direccion, codigo_postal, telefono, rfc, marca, modelo, tipo, año, fecha_inicio, estado, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), 'Diagnostico pendiente', ?, ?, ?)",
-        [folio, nombre, apellido, correo, direccion, codigo_postal, telefono, rfc, marca, modelo, tipo, año, cliente_id, empleado_id, sucursal_id]
+        "INSERT INTO orden_trabajo (folio, fecha_inicio, estado, cliente_id, vehiculo_id, empleado_id, sucursal_id) VALUES (?, CURDATE(), 'Diagnostico', ?, ?, ?, ?)",
+        [folio, cliente_id, vehiculo_id, empleado_id, sucursal_id]
       );
   
       // Obtener el ID de la orden de trabajo recién insertada

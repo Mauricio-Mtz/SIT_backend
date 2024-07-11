@@ -1,3 +1,4 @@
+const fsP = require('fs').promises;
 const fs = require('fs');
 const path = require('path');
 const OrdenTrabajoModel = require('../models/ordenTrabajoModel');
@@ -27,7 +28,60 @@ class OrdenTrabajoController {
     }
   }
 
-  obtenerDiagnostico(req, res) {
+  async obtenerDiagnostico(req, res) {
+    const filePath = path.join(__dirname, '..', 'diagnosticos', `${req.params.folio}.json`);
+  
+    try {
+      // Verifica si el archivo existe
+      await fsP.access(filePath);
+  
+      // Lee el contenido del archivo
+      const data = await fsP.readFile(filePath, 'utf8');
+      const jsonData = JSON.parse(data);
+      res.status(200).json(jsonData);
+    } catch (error) {
+      console.error('Error al leer o parsear el archivo JSON:', error);
+      res.status(404).json({ message: 'Archivo no encontrado o formato incorrecto' });
+    }
+  }  
+
+  async guardarDiagnostico(req, res) {
+    const { diagnosticoCompleto, ordenId, ordenFolio, estado } = req.body;
+    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
+  
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+      const updatedRows = await this.ordenTrabajoModel.finalizaDiagnostico(ordenId, estado);
+      res.status(200).json({ message: 'Archivo guardado exitosamente', resultado: updatedRows });
+    } catch (error) {
+      console.error(`Error al guardar el estado ${estado}:`, error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async modificarDiagnostico(req, res) {
+    const { diagnosticoCompleto, ordenFolio } = req.body;
+    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
+  
+    try {
+      // Verifica si el archivo existe
+      const fileExists = await fsP.access(filePath).then(() => true).catch(() => false);
+  
+      // Escribe el contenido en el archivo (reemplaza si existe)
+      await fsP.writeFile(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+  
+      if (fileExists) {
+        res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
+      } else {
+        res.status(200).json({ message: 'Archivo creado exitosamente' });
+      }
+    } catch (error) {
+      console.error('Error al guardar el diagnóstico:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  obtenerCotizacion(req, res) {
     const filePath = path.join(__dirname, '..', 'diagnosticos', `${req.params.folio}.json`);
 
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -44,6 +98,23 @@ class OrdenTrabajoController {
         res.status(500).json({ message: 'Error interno del servidor' });
       }
     });
+  }
+
+  async guardarCotizacion(req, res) {
+    const { ordenId, ordenFolio, diagnosticoCompleto, proceso, estado, serviciosSeleccionados, refaccionesOrden } = req.body;
+    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
+  
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+  
+      const fecha = new Date();
+      await this.ordenTrabajoModel.siguientePaso(ordenId, proceso, estado, serviciosSeleccionados, refaccionesOrden);
+  
+      res.status(200).json({ message: `${estado} guardado exitosamente` });
+    } catch (error) {
+      console.error(`Error al guardar el estado ${estado}:`, error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
   }
 
   async siguientePaso(req, res) {
@@ -105,7 +176,7 @@ class OrdenTrabajoController {
 
   async serviciosPorOrden(req, res) {
     try {
-      const servicios = await this.ordenTrabajoModel.serviciosPorOrden(req.params.folio);
+      const servicios = await this.ordenTrabajoModel.serviciosPorOrden(req.params.id);
       res.status(200).json(servicios);
     } catch (error) {
       console.error('Error al obtener los servicios:', error);
@@ -114,25 +185,8 @@ class OrdenTrabajoController {
   }
 
   async createOrdenTrabajo(req, res) {
-    const { nombre, apellido, correo, telefono, marca, modelo, año, tipo, cliente_id, servicios, sucursal_id, empleado_id } = req.body;
-
-    const ordenTrabajo = {
-      nombre,
-      apellido,
-      correo,
-      telefono, 
-      marca,
-      modelo,
-      tipo,
-      año,
-      cliente_id,
-      sucursal_id,
-      empleado_id,
-      servicios,
-    };
-
     try {
-      const ordenId = await this.ordenTrabajoModel.createOrdenTrabajo(ordenTrabajo);
+      const ordenId = await this.ordenTrabajoModel.createOrdenTrabajo(req.body);
       res.status(201).json({ message: 'Orden de trabajo creada exitosamente', ordenId });
     } catch (error) {
       console.error('Error al crear la orden de trabajo:', error);

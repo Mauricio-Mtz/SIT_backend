@@ -1,8 +1,21 @@
 {
+  "informacion": {
+    "fecha": "2024-07-11",
+    "direccion": "Dirección de la Sucursal 1"
+  },
+  "cliente": {
+    "nombre": "Mauricio",
+    "apellido": "Martínez",
+    "correo": "pedro@example.com",
+    "telefono": "4411108592",
+    "codigo_postal": "76680",
+    "rfc": "1234567890123",
+    "direccion": "Vicente Guerrero S/N"
+  },
   "vehiculo": {
-    "modelo": "Civic",
+    "modelo": "",
     "tipo": "Deportivo",
-    "marca": "Honda",
+    "marca": "",
     "color": "Verde",
     "placas": "",
     "numeroSerie": "",

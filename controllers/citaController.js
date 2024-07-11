@@ -106,19 +106,26 @@ class citaController {
   }
 
   async aprobarOrdenTrabajo(req, res) {
-    const { citaId, marca, modelo, año, tipo, cliente, sucursal, empleado, } = req.body;
+    let { citaId, nombre, apellido, numero, correo, contrasena, marca, modelo, año, tipo, cliente, vehiculo, sucursal, empleado, } = req.body;
     try {
-      // Aprobar la cita cambiando el estado a 3
-      const citaAprobada = await this.citaModel.aprobarOrdenTrabajo(citaId);
-      if (!citaAprobada) {
-        return res
-          .status(404)
-          .json({ message: "No se encontró la cita o ya fue aprobada" });
-      }
-
       // Crear folio de la orden de trabajo (ejemplo: OT-00001)
       const folioOT = await this.citaModel.generarNuevoFolio();
       
+      // Crear cliente en caso de que no exista
+      if (cliente === null) {
+        const clienteId = await this.citaModel.crearCliente({
+          nombre, apellido, numero, correo, contrasena
+        })
+        cliente = clienteId;
+      }
+      // Crear vehiculo en caso de que no exista
+      if (vehiculo === null) {
+        const vehiculoId = await this.citaModel.crearVehiculo({
+          marca, modelo, tipo, año, cliente
+        })
+        vehiculo = vehiculoId;
+      }
+
       // Crear la orden de trabajo en la base de datos
       const ordenTrabajoId = await this.citaModel.crearOrdenTrabajo({
         citaId,
@@ -130,9 +137,16 @@ class citaController {
         fecha_inicio: new Date().toISOString().split("T")[0],
         estado: "Esperando diagnóstico",
         cliente_id: cliente,
+        vehiculo_id: vehiculo,
         empleado_id: empleado,
         sucursal_id: sucursal,
       });
+
+      // Aprobar la cita cambiando el estado a 3
+      const citaAprobada = await this.citaModel.aprobarOrdenTrabajo(citaId);
+      if (!citaAprobada) {
+        return res.status(404).json({ message: "No se encontró la cita o ya fue aprobada" });
+      }
       
       // Agregar servicios a la orden de trabajo en caso de tenerlos
       await this.citaModel.asignarServiciosAOrdenTrabajo(ordenTrabajoId, citaId);

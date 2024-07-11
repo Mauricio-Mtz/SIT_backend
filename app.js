@@ -12,6 +12,7 @@ const citaRoutes = require('./routes/citaRoutes')
 const servicioRoutes = require('./routes/servicioRoutes')
 const utilidadRoutes = require('./routes/utilidadRoutes')
 const ordenTrabajoRoutes = require('./routes/ordenTrabajoRoutes')
+const vehiculoRoutes = require('./routes/vehiculoRoutes')
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/citas', citaRoutes);
 app.use('/servicio', servicioRoutes);
 app.use('/utilidades', utilidadRoutes);
 app.use('/ordenTrabajo', ordenTrabajoRoutes);
+app.use('/vehiculos', vehiculoRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

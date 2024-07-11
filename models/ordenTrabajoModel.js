@@ -20,8 +20,32 @@ class OrdenTrabajoModel {
     await this.connect();
     try {
       const [results] = await this.connection.execute(`
-        SELECT *
-        FROM orden_trabajo
+        SELECT 
+            ot.id,
+            ot.folio AS folio_orden,
+            ot.fecha_inicio,
+            ot.fecha_fin,
+            ot.estado,
+            c.id AS cliente_id,
+            c.folio AS folio_cliente,
+            c.nombre AS nombre_cliente,
+            c.apellido AS apellido_cliente,
+            v.id AS vehiculo_id,
+            v.marca AS marca_vehiculo,
+            v.modelo AS modelo_vehiculo,
+            v.tipo AS tipo_vehiculo,
+            v.año AS año_vehiculo,
+            e.id AS empleado_id,
+            e.nombre AS nombre_empleado,
+            e.apellido AS apellido_empleado,
+            s.id AS sucursal_id,
+            s.nombre AS nombre_sucursal,
+            s.direccion AS direccion_sucursal
+        FROM orden_trabajo ot
+        JOIN cliente c ON ot.cliente_id = c.id
+        JOIN vehiculo v ON ot.vehiculo_id = v.id
+        JOIN empleado e ON ot.empleado_id = e.id
+        JOIN sucursal s ON ot.sucursal_id = s.id
         WHERE empleado_id = ?
       `,[empleado_id]
       );
@@ -38,8 +62,32 @@ class OrdenTrabajoModel {
     await this.connect();
     try {
       const [results] = await this.connection.execute(`
-        SELECT *
-        FROM orden_trabajo
+        SELECT 
+            ot.id,
+            ot.folio AS folio_orden,
+            ot.fecha_inicio,
+            ot.fecha_fin,
+            ot.estado,
+            c.id AS cliente_id,
+            c.folio AS folio_cliente,
+            c.nombre AS nombre_cliente,
+            c.apellido AS apellido_cliente,
+            v.id AS vehiculo_id,
+            v.marca AS marca_vehiculo,
+            v.modelo AS modelo_vehiculo,
+            v.tipo AS tipo_vehiculo,
+            v.año AS año_vehiculo,
+            e.id AS empleado_id,
+            e.nombre AS nombre_empleado,
+            e.apellido AS apellido_empleado,
+            s.id AS sucursal_id,
+            s.nombre AS nombre_sucursal,
+            s.direccion AS direccion_sucursal
+        FROM orden_trabajo ot
+        JOIN cliente c ON ot.cliente_id = c.id
+        JOIN vehiculo v ON ot.vehiculo_id = v.id
+        JOIN empleado e ON ot.empleado_id = e.id
+        JOIN sucursal s ON ot.sucursal_id = s.id
       `);
       return results;
     } catch (error) {
@@ -49,6 +97,24 @@ class OrdenTrabajoModel {
     }
   }
 
+  async finalizaDiagnostico(ordenId, estado) {
+    await this.connect();
+    const connection = this.connection;
+
+    try {
+      const [result] = await this.connection.execute(`
+        UPDATE orden_trabajo
+        SET estado = ?
+        WHERE id = ?
+      `,[estado, ordenId]);
+      return result.affectedRows;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
   async siguientePaso(ordenId,fecha,proceso,estado,serviciosSeleccionados,refaccionesOrden) {
     await this.connect();
     const connection = this.connection;
@@ -187,7 +253,7 @@ class OrdenTrabajoModel {
     }
   }
 
-  async serviciosPorOrden(folio) {
+  async serviciosPorOrden(id) {
     await this.connect();
     try {
       const [results] = await this.connection.execute(
@@ -196,10 +262,50 @@ class OrdenTrabajoModel {
         FROM servicio_orden
         WHERE orden_id = ?
       `,
-        [folio]
+        [id]
       );
 
       return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async crearCliente({ nombre, apellido, numero, correo }) {
+    await this.connect();
+    try {
+      // Obtener el folio máximo actual y sumarle 1 para el nuevo folio
+      const [rows] = await this.connection.execute(
+        'SELECT IFNULL(MAX(folio), 9999999) + 1 AS nuevo_folio FROM cliente'
+      );
+      const nuevoFolio = rows[0].nuevo_folio;
+  
+      // Insertar el nuevo cliente en la base de datos
+      const [result] = await this.connection.execute(
+        'INSERT INTO cliente (folio, nombre, apellido, telefono, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?)',
+        [nuevoFolio, nombre, apellido, numero, correo, nuevoFolio]
+      );
+  
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async asignarVehiculo({marca, modelo, tipo, año, cliente_id}) {
+    await this.connect();
+    try {  
+      // Insertar el nuevo vehiculo en la base de datos
+      const [result] = await this.connection.execute(
+        'INSERT INTO vehiculo (marca, modelo, tipo, año, cliente_id) VALUES (?, ?, ?, ?, ?)',
+        [marca, modelo, tipo, año, cliente_id]
+      );
+  
+      return result.insertId;
     } catch (error) {
       throw error;
     } finally {
@@ -218,35 +324,46 @@ class OrdenTrabajoModel {
       const [folios] = await connection.execute(
         "SELECT MAX(folio) AS ultimoFolio FROM orden_trabajo"
       );
-
-      const ultimoFolio = folios[0].ultimoFolio;
-
       // Generar el nuevo folio
       let nuevoFolio;
-      if (ultimoFolio) {
-        const ultimoNumero = parseInt(ultimoFolio.slice(2)); // Extraer el número del folio
+      if (folios[0].ultimoFolio) {
+        const ultimoNumero = parseInt(folios[0].ultimoFolio.slice(2)); // Extraer el número del folio
         const nuevoNumero = ultimoNumero + 1;
         nuevoFolio = `OT${nuevoNumero.toString().padStart(3, '0')}`; // Formatear el nuevo folio
       } else {
         nuevoFolio = 'OT000'; // Primer folio
       }
 
+      if (ordenTrabajo.cliente === '') {
+        const clienteId = await this.crearCliente({
+          nombre: ordenTrabajo.nombre,
+          apellido: ordenTrabajo.apellido,
+          numero: ordenTrabajo.telefono,
+          correo: ordenTrabajo.correo,
+        });
+        ordenTrabajo.cliente = clienteId;
+      }
+
+      if (ordenTrabajo.vehiculo === '') {
+        const vehiculoId = await this.asignarVehiculo({
+          marca: ordenTrabajo.marca,
+          modelo: ordenTrabajo.modelo,
+          tipo: ordenTrabajo.tipo,
+          año: ordenTrabajo.año,
+          cliente_id: ordenTrabajo.cliente,
+        });
+        ordenTrabajo.vehiculo = vehiculoId;
+      }
+
       const [result] = await connection.execute(
         `
-        INSERT INTO orden_trabajo (folio, nombre, apellido, correo, telefono, marca, modelo, tipo, año, fecha_inicio, estado, cliente_id, empleado_id, sucursal_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), 'Diagnostico pendiente', ?, ?, ?)
+        INSERT INTO orden_trabajo (folio, fecha_inicio, estado, cliente_id, vehiculo_id, empleado_id, sucursal_id)
+        VALUES (?, CURDATE(), 'Diagnostico', ?, ?, ?, ?)
         `,
         [
           nuevoFolio,
-          ordenTrabajo.nombre,
-          ordenTrabajo.apellido,
-          ordenTrabajo.correo,
-          ordenTrabajo.telefono,
-          ordenTrabajo.marca,
-          ordenTrabajo.modelo,
-          ordenTrabajo.tipo,
-          ordenTrabajo.año,
-          ordenTrabajo.cliente_id,
+          ordenTrabajo.cliente,
+          ordenTrabajo.vehiculo,
           ordenTrabajo.empleado_id,
           ordenTrabajo.sucursal_id,
         ]
