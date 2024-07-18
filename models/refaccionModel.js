@@ -87,6 +87,7 @@ class RefaccionModel {
           refaccion.numero_parte, 
           refaccion.descripcion, 
           refaccion.precio, 
+          refaccion.ganancia, 
           refaccion.cantidad, 
           refaccion.ubicacion, 
           sucursal.id as sucursal_id,

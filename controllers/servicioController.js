@@ -27,6 +27,15 @@ class serviciosController {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+  async serviciosOrden(req, res) {
+    try {
+      const servicios = await this.servicioModel.serviciosOrden(req.params.id);
+      res.status(200).json(servicios);
+    } catch (error) {
+      console.error('Error al obtener los servicios:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
 }
 
 module.exports = new serviciosController();

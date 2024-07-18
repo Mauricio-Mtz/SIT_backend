@@ -42,6 +42,27 @@ class ServicioModel {
       await this.disconnect();
     }
   }
+  
+  async serviciosOrden(ordenId) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(`
+        SELECT 
+          so.*, 
+          s.nombre, 
+          s.descripcion, 
+          s.precio
+        FROM servicio_orden so
+        INNER JOIN servicio s ON so.servicio_id = s.id
+        WHERE so.orden_id = ?
+      `, [ordenId]);
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }  
 }
 
 module.exports = ServicioModel;

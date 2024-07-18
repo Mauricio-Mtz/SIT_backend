@@ -115,6 +115,7 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+  
   async siguientePaso(ordenId,fecha,proceso,estado,serviciosSeleccionados,refaccionesOrden) {
     await this.connect();
     const connection = this.connection;
@@ -391,7 +392,108 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+
+  async agregarPaquete({nombre, precio, orden_id}) {
+    await this.connect();
+    try {  
+      const [result] = await this.connection.execute(
+        'INSERT INTO paquete_orden (nombre, precio, orden_id) VALUES (?, ?, ?)',
+        [nombre, precio, orden_id]
+      );
   
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async obtenerPaquetes(ordenId) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(`
+        SELECT *
+        FROM paquete_orden
+        WHERE orden_id = ?
+      `, [ordenId]);
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
+  async eliminarPaquete({nombre, orden_id}) {
+    await this.connect();
+    try {  
+      const [result] = await this.connection.execute(
+        'DELETE FROM paquete_orden WHERE nombre = ? and orden_id = ?',
+        [nombre, orden_id]
+      );
+      
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async obtenerRefaccionesAsignadas(ordenId) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(`
+        SELECT *
+        FROM refaccion_orden
+        WHERE orden_id = ?
+      `, [ordenId]);
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async agregarRefaccion(refacciones) {
+    await this.connect();
+    try {
+      const refaccionOrdenIds = [];
+  
+      for (const refaccion of refacciones) {
+        const { numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id } = refaccion;
+        const [result] = await this.connection.execute(
+          'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?)',
+          [numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id]
+        );
+        refaccionOrdenIds.push(result.insertId);
+      }
+  
+      return refaccionOrdenIds;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async eliminarRefaccion(refaccionId) {
+    await this.connect();
+    try {
+      const [result] = await this.connection.execute(
+        'DELETE FROM refaccion_orden WHERE id = ?',
+        [refaccionId]
+      );
+      
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
 }
 
 module.exports = OrdenTrabajoModel;

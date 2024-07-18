@@ -116,7 +116,9 @@ class CitaModel {
 
   async crearCita(cita) {
     await this.connect();
-    const { nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id = null, vehiculo_id = null, sucursal_id, servicios } = cita;
+    const { nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, sucursal_id, servicios } = cita;
+    const cliente_id = cita.cliente_id === 0 ? null : cita.cliente_id;
+    const vehiculo_id = cita.vehiculo_id === 0 ? null : cita.vehiculo_id;
     try {
         // Insertar la cita en la tabla cita
         const [result] = await this.connection.execute(

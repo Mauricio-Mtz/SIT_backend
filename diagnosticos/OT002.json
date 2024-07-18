@@ -1,7 +1,7 @@
 {
   "informacion": {
-    "fecha": "2024-07-11",
-    "direccion": "Dirección de la Sucursal 1"
+    "fecha": "",
+    "direccion": ""
   },
   "cliente": {
     "nombre": "Pedro",
@@ -13,51 +13,49 @@
     "direccion": "Calle de los Robles 456"
   },
   "vehiculo": {
-    "modelo": "Forza",
+    "modelo": "Fiesta",
     "tipo": "Pequeño",
-    "marca": "Horizon",
-    "color": "Verde",
-    "placas": "ABC-123",
-    "numeroSerie": "1HGCM82633A123456",
-    "numeroMotor": "123ABC789XYZ",
-    "kilometros": "50,000"
+    "marca": "Ford",
+    "color": "Rojo",
+    "placas": "ADH-153",
+    "numeroSerie": "1HGCA83636A223456",
+    "numeroMotor": "56789NHBJKMFE",
+    "kilometros": "23,489"
   },
   "inventario": {
     "exteriores": {
-      "unidadLuces": true,
-      "cuartoLuces": false,
-      "antena": true,
-      "espejoLateral": false,
-      "cristales": true,
+      "unidadLuces": false,
+      "cuartoLuces": true,
+      "antena": false,
+      "espejoLateral": true,
+      "cristales": false,
       "emblema": true,
       "llantas": false,
       "taponRuedas": true,
       "molduras": false,
-      "taponGasolina": false,
+      "taponGasolina": true,
       "carroceria": false,
-      "limpiadores": false
+      "limpiadores": true
     },
     "interiores": {
-      "instrumentosTablero": false,
+      "instrumentosTablero": true,
       "calefaccion": false,
       "radio": true,
       "encendedor": false,
       "espejoRetrovisor": true,
-      "ceniceros": false,
+      "ceniceros": true,
       "cinturones": true,
       "botonesInteriores": true,
-      "manijasInteriores": true,
-      "tapetes": true,
+      "manijasInteriores": false,
+      "tapetes": false,
       "vestiduras": false,
-      "bocinasClaxon": true
+      "bocinasClaxon": false
     }
   },
   "observaciones": {
-    "tanqueGasolina": {
-      "tanqueGasolina": "3/4"
-    },
+    "tanqueGasolina": "3/4",
     "accesorios": {
-      "gato": true,
+      "gato": false,
       "materialGato": true,
       "llaveRuedas": true,
       "estucheHerramientas": true,
@@ -81,5 +79,5 @@
       "otras": ""
     }
   },
-  "descripcion": "bla bla bla"
+  "descripcion": "El vehiculo tiene tal cosa"
 }

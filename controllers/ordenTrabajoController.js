@@ -30,7 +30,7 @@ class OrdenTrabajoController {
 
   async obtenerDiagnostico(req, res) {
     const filePath = path.join(__dirname, '..', 'diagnosticos', `${req.params.folio}.json`);
-  
+
     try {
       // Verifica si el archivo existe
       await fsP.access(filePath);
@@ -38,12 +38,11 @@ class OrdenTrabajoController {
       // Lee el contenido del archivo
       const data = await fsP.readFile(filePath, 'utf8');
       const jsonData = JSON.parse(data);
-      res.status(200).json(jsonData);
+      return res.status(200).json({jsonData, result: true});
     } catch (error) {
-      console.error('Error al leer o parsear el archivo JSON:', error);
-      res.status(404).json({ message: 'Archivo no encontrado o formato incorrecto' });
+      return res.status(200).json({ message: 'Archivo de diagnóstico no encontrado', result: false });
     }
-  }  
+  }
 
   async guardarDiagnostico(req, res) {
     const { diagnosticoCompleto, ordenId, ordenFolio, estado } = req.body;
@@ -81,23 +80,20 @@ class OrdenTrabajoController {
     }
   }
 
-  obtenerCotizacion(req, res) {
-    const filePath = path.join(__dirname, '..', 'diagnosticos', `${req.params.folio}.json`);
+  async obtenerCotizacion(req, res) {
+    const filePath = path.join(__dirname, '..', 'cotizaciones', `${req.params.folio}.json`);
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-        console.error('Error al leer el archivo JSON:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
-
-      try {
-        const jsonData = JSON.parse(data);
-        res.status(200).json(jsonData);
-      } catch (parseError) {
-        console.error('Error al parsear el archivo JSON:', parseError);
-        res.status(500).json({ message: 'Error interno del servidor' });
-      }
-    });
+    try {
+      // Verifica si el archivo existe
+      await fsP.access(filePath);
+  
+      // Lee el contenido del archivo
+      const data = await fsP.readFile(filePath, 'utf8');
+      const jsonData = JSON.parse(data);
+      return res.status(200).json({jsonData, result: true});
+    } catch (error) {
+      return res.status(200).json({ message: 'Archivo de diagnóstico no encontrado', result: false });
+    }
   }
 
   async guardarCotizacion(req, res) {
@@ -113,6 +109,28 @@ class OrdenTrabajoController {
       res.status(200).json({ message: `${estado} guardado exitosamente` });
     } catch (error) {
       console.error(`Error al guardar el estado ${estado}:`, error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async modificarCotizacion(req, res) {
+    const { diagnosticoCompleto, ordenFolio } = req.body;
+    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
+  
+    try {
+      // Verifica si el archivo existe
+      const fileExists = await fsP.access(filePath).then(() => true).catch(() => false);
+  
+      // Escribe el contenido en el archivo (reemplaza si existe)
+      await fsP.writeFile(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+  
+      if (fileExists) {
+        res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
+      } else {
+        res.status(200).json({ message: 'Archivo creado exitosamente' });
+      }
+    } catch (error) {
+      console.error('Error al guardar el diagnóstico:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
@@ -190,6 +208,66 @@ class OrdenTrabajoController {
       res.status(201).json({ message: 'Orden de trabajo creada exitosamente', ordenId });
     } catch (error) {
       console.error('Error al crear la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async agregarPaquete(req, res) {
+    try {
+      const paqueteOrdenId = await this.ordenTrabajoModel.agregarPaquete(req.body);
+      res.status(201).json({ message: 'Paquete asignado correctamente a la orden de trabajo', paqueteOrdenId });
+    } catch (error) {
+      console.error('Error al agregar paquete a la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async obtenerPaquetes(req, res) {
+    try {
+      const servicios = await this.ordenTrabajoModel.obtenerPaquetes(req.params.id);
+      res.status(200).json(servicios);
+    } catch (error) {
+      console.error('Error al obtener los servicios:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+  
+  async eliminarPaquete(req, res) {
+    try {
+      const paqueteOrdenId = await this.ordenTrabajoModel.eliminarPaquete(req.body);
+      res.status(201).json({ message: 'Paquete eliminado correctamente a la orden de trabajo', paqueteOrdenId });
+    } catch (error) {
+      console.error('Error al eliminar paquete a la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async obtenerRefaccionesAsignadas(req, res) {
+    try {
+      const refacciones = await this.ordenTrabajoModel.obtenerRefaccionesAsignadas(req.params.id);
+      res.status(200).json(refacciones);
+    } catch (error) {
+      console.error('Error al obtener las refacciones de la orden:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async agregarRefaccion(req, res) {
+    try {
+      const refaccionOrdenIds = await this.ordenTrabajoModel.agregarRefaccion(req.body);
+      res.status(201).json({ message: 'Refaccion asignada correctamente a la orden de trabajo', refaccionOrdenIds });
+    } catch (error) {
+      console.error('Error al agregar la refaccion a la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+  
+  async eliminarRefaccion(req, res) {
+    try {
+      const refaccionOrdenId = await this.ordenTrabajoModel.eliminarRefaccion(req.body.refaccionId);
+      res.status(201).json({ message: 'Refaccion eliminada correctamente a la orden de trabajo', refaccionOrdenId });
+    } catch (error) {
+      console.error('Error al eliminar la refaccion de la orden de trabajo:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
