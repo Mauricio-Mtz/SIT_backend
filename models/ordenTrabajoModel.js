@@ -208,20 +208,18 @@ class OrdenTrabajoModel {
     try {
       const [servicios] = await this.connection.execute(
         `
-        SELECT s.id, s.nombre, s.precio
-        FROM servicio s
-        INNER JOIN servicio_orden so ON s.id = so.servicio_id
-        WHERE so.orden_id = ?
+        SELECT *
+        FROM paquete_orden
+        WHERE orden_id = ?
         `,
         [ordenId]
       );
 
       const [refacciones] = await this.connection.execute(
         `
-        SELECT r.id, r.descripcion, r.precio, ro.cantidad
-        FROM refaccion r
-        INNER JOIN refaccion_orden ro ON r.id = ro.refaccion_id
-        WHERE ro.orden_id = ?
+        SELECT *
+        FROM refaccion_orden
+        WHERE orden_id = ?
         `,
         [ordenId]
       );
@@ -460,24 +458,132 @@ class OrdenTrabajoModel {
   async agregarRefaccion(refacciones) {
     await this.connect();
     try {
+      let result = true; // Cambia esto a true inicialmente
       const refaccionOrdenIds = [];
+      let message = ""; // Inicializa el mensaje como vacío
   
       for (const refaccion of refacciones) {
         const { numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id } = refaccion;
-        const [result] = await this.connection.execute(
-          'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?)',
-          [numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id]
-        );
-        refaccionOrdenIds.push(result.insertId);
+  
+        if (refaccion_id) {
+          // Verificar si la refacción ya existe en la orden de trabajo
+          const [existingRefaccion] = await this.connection.execute(
+            'SELECT id, cantidad FROM refaccion_orden WHERE numero_parte = ? AND orden_id = ? AND refaccion_id = ?',
+            [numero_parte, orden_id, refaccion_id]
+          );
+  
+          if (existingRefaccion.length > 0) {
+            // La refacción ya existe en la orden de trabajo, actualizar la cantidad
+            const existingCantidad = existingRefaccion[0].cantidad;
+  
+            // Verificar stock en la tabla refaccion
+            const [stockRefaccion] = await this.connection.execute(
+              'SELECT cantidad FROM refaccion WHERE id = ?',
+              [refaccion_id]
+            );
+  
+            if (stockRefaccion.length > 0) {
+              const stockCantidad = stockRefaccion[0].cantidad;
+              const nuevaCantidad = existingCantidad + cantidad;
+  
+              if (nuevaCantidad <= stockCantidad) {
+                // Actualizar la cantidad en refaccion_orden
+                await this.connection.execute(
+                  'UPDATE refaccion_orden SET cantidad = ? WHERE id = ?',
+                  [nuevaCantidad, existingRefaccion[0].id]
+                );
+                refaccionOrdenIds.push(existingRefaccion[0].id);
+              } else {
+                // Si la cantidad excede el stock, solo agregar la cantidad máxima disponible
+                await this.connection.execute(
+                  'UPDATE refaccion_orden SET cantidad = ? WHERE id = ?',
+                  [stockCantidad, existingRefaccion[0].id]
+                );
+                refaccionOrdenIds.push(existingRefaccion[0].id);
+              }
+            } else {
+              result = false; // Cambia a false si no hay stock
+              message = `No hay stock disponible para la refacción con ID ${refaccion_id}`;
+            }
+          } else {
+            // La refacción no existe en la orden de trabajo, insertar una nueva entrada
+            const [stockRefaccion] = await this.connection.execute(
+              'SELECT cantidad FROM refaccion WHERE id = ?',
+              [refaccion_id]
+            );
+  
+            if (stockRefaccion.length > 0) {
+              const stockCantidad = stockRefaccion[0].cantidad;
+  
+              if (cantidad <= stockCantidad) {
+                const [resultInsert] = await this.connection.execute(
+                  'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?)',
+                  [numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id]
+                );
+                refaccionOrdenIds.push(resultInsert.insertId);
+              } else {
+                // Si la cantidad excede el stock, solo agregar la cantidad máxima disponible
+                const [resultInsert] = await this.connection.execute(
+                  'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?)',
+                  [numero_parte, descripcion, stockCantidad, precio, orden_id, refaccion_id]
+                );
+                refaccionOrdenIds.push(resultInsert.insertId);
+              }
+            } else {
+              result = false; // Cambia a false si no hay stock
+              message = `No hay stock disponible para la refacción con ID ${refaccion_id}`;
+            }
+          }
+        } else {
+          // Refacción sin refaccion_id
+          // Validar que el numero_parte no exista en la tabla refaccion
+          const [existingRefaccionGeneral] = await this.connection.execute(
+            'SELECT id FROM refaccion WHERE numero_parte = ?',
+            [numero_parte]
+          );
+  
+          if (existingRefaccionGeneral.length > 0) {
+            result = false; // Cambia a false si existe en refaccion
+            message = `La refacción con numero de parte ${numero_parte} ya existe en la tabla refaccion`;
+          }
+  
+          // Verificar si la refacción ya existe en la orden de trabajo
+          const [existingRefaccionOrden] = await this.connection.execute(
+            'SELECT id, cantidad FROM refaccion_orden WHERE numero_parte = ? AND orden_id = ?',
+            [numero_parte, orden_id]
+          );
+  
+          if (existingRefaccionOrden.length > 0) {
+            // La refacción ya existe en la orden de trabajo, actualizar la cantidad
+            const existingCantidad = existingRefaccionOrden[0].cantidad;
+            const nuevaCantidad = existingCantidad + cantidad;
+  
+            // No hay necesidad de verificar el stock aquí, ya que no existe en la tabla refaccion
+            await this.connection.execute(
+              'UPDATE refaccion_orden SET cantidad = ? WHERE id = ?',
+              [nuevaCantidad, existingRefaccionOrden[0].id]
+            );
+            refaccionOrdenIds.push(existingRefaccionOrden[0].id);
+          } else {
+            // La refacción no existe en la orden de trabajo, insertar una nueva entrada
+            const [resultInsert] = await this.connection.execute(
+              'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id) VALUES (?, ?, ?, ?, ?)',
+              [numero_parte, descripcion, cantidad, precio, orden_id]
+            );
+            refaccionOrdenIds.push(resultInsert.insertId);
+          }
+        }
       }
   
-      return refaccionOrdenIds;
+      const response = { result, refaccionOrdenIds, message };
+      return response;
     } catch (error) {
-      throw error;
+      // Maneja el error y establece el mensaje en el caso de una excepción
+      return { result: false, refaccionOrdenIds: [], message: error.message }; // Devuelve el mensaje de error
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async eliminarRefaccion(refaccionId) {
     await this.connect();

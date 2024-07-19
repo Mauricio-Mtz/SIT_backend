@@ -1,0 +1,114 @@
+{
+  "informacion": {
+    "fecha": "2024-07-19",
+    "direccion": "Dirección de la Sucursal 1"
+  },
+  "cliente": {
+    "nombre": "Pedro",
+    "apellido": "Ramírez",
+    "correo": "pedro@example.com",
+    "telefono": "5544332211",
+    "codigo_postal": "89574",
+    "rfc": "0290394884723",
+    "direccion": "Calle de los Robles 456"
+  },
+  "vehiculo": {
+    "modelo": "Audi A4",
+    "tipo": "9",
+    "marca": "Audi",
+    "color": "Rojo",
+    "placas": "KFJ-829",
+    "numeroSerie": "928309284983",
+    "numeroMotor": "019248",
+    "kilometros": "93,283"
+  },
+  "paquetes": [
+    {
+      "id": 6,
+      "nombre": "Paquete VI - Servicio de Transmisión (Automático)",
+      "precio": 754,
+      "orden_id": 5
+    },
+    {
+      "id": 7,
+      "nombre": "Paquete VI - Servicio de Transmisión (Estándar)",
+      "precio": 1972,
+      "orden_id": 5
+    },
+    {
+      "id": 8,
+      "nombre": "Paquete V - Frenos Delanteros",
+      "precio": 4356,
+      "orden_id": 5
+    },
+    {
+      "id": 9,
+      "nombre": "Paquete I - Servicio Menor",
+      "precio": 567,
+      "orden_id": 5
+    }
+  ],
+  "refacciones": [
+    {
+      "id": 51,
+      "numero_parte": "123451",
+      "descripcion": "Filtro de aceite",
+      "cantidad": 2,
+      "precio": "30.15",
+      "orden_id": 5,
+      "refaccion_id": 1
+    },
+    {
+      "id": 52,
+      "numero_parte": "123452",
+      "descripcion": "Tornillos",
+      "cantidad": 2,
+      "precio": "16.50",
+      "orden_id": 5,
+      "refaccion_id": 2
+    },
+    {
+      "id": 53,
+      "numero_parte": "123453",
+      "descripcion": "Motor",
+      "cantidad": 1,
+      "precio": "27.11",
+      "orden_id": 5,
+      "refaccion_id": 3
+    },
+    {
+      "id": 54,
+      "numero_parte": "123454",
+      "descripcion": "Llanta",
+      "cantidad": 2,
+      "precio": "60.71",
+      "orden_id": 5,
+      "refaccion_id": 4
+    },
+    {
+      "id": 55,
+      "numero_parte": "999999",
+      "descripcion": "JBDNHUFC",
+      "cantidad": 2,
+      "precio": "74.00",
+      "orden_id": 5,
+      "refaccion_id": null
+    },
+    {
+      "id": 56,
+      "numero_parte": "123450",
+      "descripcion": "afdsdjnk",
+      "cantidad": 2,
+      "precio": "21.00",
+      "orden_id": 5,
+      "refaccion_id": null
+    }
+  ],
+  "costos": {
+    "descuento": "1454.55",
+    "costo_total_sin_iva": "6626.28",
+    "valor_iva": "1060.20",
+    "costo_total_con_iva": "7686.49"
+  },
+  "descripcion": ""
+}

@@ -97,14 +97,13 @@ class OrdenTrabajoController {
   }
 
   async guardarCotizacion(req, res) {
-    const { ordenId, ordenFolio, diagnosticoCompleto, proceso, estado, serviciosSeleccionados, refaccionesOrden } = req.body;
-    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
+    const { ordenId, ordenFolio, cotizacionCompleta, proceso, estado } = req.body;
+    const filePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
   
     try {
-      fs.writeFileSync(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+      fs.writeFileSync(filePath, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
   
-      const fecha = new Date();
-      await this.ordenTrabajoModel.siguientePaso(ordenId, proceso, estado, serviciosSeleccionados, refaccionesOrden);
+      // await this.ordenTrabajoModel.siguientePaso(ordenId, proceso, estado);
   
       res.status(200).json({ message: `${estado} guardado exitosamente` });
     } catch (error) {
@@ -114,15 +113,15 @@ class OrdenTrabajoController {
   }
 
   async modificarCotizacion(req, res) {
-    const { diagnosticoCompleto, ordenFolio } = req.body;
-    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
+    const { cotizacionCompleta, ordenFolio } = req.body;
+    const filePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
   
     try {
       // Verifica si el archivo existe
       const fileExists = await fsP.access(filePath).then(() => true).catch(() => false);
   
       // Escribe el contenido en el archivo (reemplaza si existe)
-      await fsP.writeFile(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+      await fsP.writeFile(filePath, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
   
       if (fileExists) {
         res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
@@ -135,46 +134,42 @@ class OrdenTrabajoController {
     }
   }
 
-  async siguientePaso(req, res) {
-    const { ordenId, ordenFolio, diagnosticoCompleto, proceso, estado, serviciosSeleccionados, refaccionesOrden } = req.body;
-    const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
-  
+  async obtenerDetallesCotizacion(req, res) {
+    const filePath = path.join(__dirname, '..', 'diagnosticos', `${req.params.folio}.json`);
     try {
-      if (diagnosticoCompleto) {
-        fs.writeFileSync(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
+      // Obtiene los detalles de la cotización
+      const detallesCotizacion = await this.ordenTrabajoModel.obtenerDetallesCotizacion(req.params.id);
+  
+      let jsonData = null;
+  
+      try {
+        // Verifica si el archivo del diagnóstico existe y lee el contenido del archivo
+        await fsP.access(filePath);
+        const data = await fsP.readFile(filePath, 'utf8');
+        jsonData = JSON.parse(data);
+      } catch (fileError) {
+        // Si el archivo no existe, simplemente omite la información del diagnóstico
+        if (fileError.code !== 'ENOENT') {
+          throw fileError; // Lanza el error si no es por archivo no encontrado
+        }
+        // Si el archivo no se encuentra, jsonData permanece como null
       }
   
-      const fecha = new Date();
-      await this.ordenTrabajoModel.siguientePaso(ordenId, fecha, proceso, estado, serviciosSeleccionados, refaccionesOrden);
+      // Crea la respuesta con la información disponible
+      const cotizacion = { 
+        cliente: jsonData ? jsonData.cliente : null, 
+        vehiculo: jsonData ? jsonData.vehiculo : null,
+        servicios: detallesCotizacion.servicios,
+        refacciones: detallesCotizacion.refacciones
+      };
   
-      res.status(200).json({ message: `${estado} guardado exitosamente` });
+      res.status(200).json(cotizacion);
     } catch (error) {
-      console.error(`Error al guardar el estado ${estado}:`, error);
-      res.status(500).json({ message: 'Error interno del servidor' });
-    }
-  }
-
-  async anteriorPaso(req, res) {
-    const { ordenId, estado, } = req.body;
-    try {
-      await this.ordenTrabajoModel.anteriorPaso(ordenId, estado);
-  
-      res.status(200).json({ message: `${estado} guardado exitosamente` });
-    } catch (error) {
-      console.error(`Error al guardar el estado ${estado}:`, error);
-      res.status(500).json({ message: 'Error interno del servidor' });
-    }
-  }
-
-  async obtenerDetallesCotizacion(req, res) {
-    try {
-      const detallesCotizacion = await this.ordenTrabajoModel.obtenerDetallesCotizacion(req.params.id);
-      res.status(200).json(detallesCotizacion);
-    } catch (error) {
+      // Maneja cualquier otro error
       console.error('Error al obtener detalles de cotización:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
-  }
+  }  
 
   async verificarContrasena(req, res) {
     const { clave } = req.body;
@@ -254,13 +249,27 @@ class OrdenTrabajoController {
 
   async agregarRefaccion(req, res) {
     try {
-      const refaccionOrdenIds = await this.ordenTrabajoModel.agregarRefaccion(req.body);
-      res.status(201).json({ message: 'Refaccion asignada correctamente a la orden de trabajo', refaccionOrdenIds });
+      const response = await this.ordenTrabajoModel.agregarRefaccion(req.body);
+      
+      // Establece el estado en función del resultado
+      if (response.result) {
+        res.status(201).json({
+          message: response.message || "Refacciones agregadas correctamente.",
+          refaccionOrdenIds: response.refaccionOrdenIds,
+          result: response.result
+        });
+      } else {
+        res.status(400).json({ // Cambia el estado a 400 para errores de cliente
+          message: response.message || "Error al agregar refacción.",
+          refaccionOrdenIds: response.refaccionOrdenIds,
+          result: response.result
+        });
+      }
     } catch (error) {
-      console.error('Error al agregar la refaccion a la orden de trabajo:', error);
-      res.status(500).json({ message: 'Error interno del servidor' });
+      console.error('Error al agregar la refacción a la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
-  }
+  }  
   
   async eliminarRefaccion(req, res) {
     try {

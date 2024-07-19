@@ -1,0 +1,83 @@
+{
+  "informacion": {
+    "fecha": "",
+    "direccion": ""
+  },
+  "cliente": {
+    "nombre": "Pedro",
+    "apellido": "Ramírez",
+    "correo": "pedro@example.com",
+    "telefono": "5544332211",
+    "codigo_postal": "89574",
+    "rfc": "0290394884723",
+    "direccion": "Calle de los Robles 456"
+  },
+  "vehiculo": {
+    "modelo": "Audi A4",
+    "tipo": "9",
+    "marca": "Audi",
+    "color": "Rojo",
+    "placas": "KFJ-829",
+    "numeroSerie": "928309284983",
+    "numeroMotor": "019248",
+    "kilometros": "93,283"
+  },
+  "inventario": {
+    "exteriores": {
+      "unidadLuces": true,
+      "cuartoLuces": false,
+      "antena": true,
+      "espejoLateral": false,
+      "cristales": true,
+      "emblema": true,
+      "llantas": true,
+      "taponRuedas": true,
+      "molduras": false,
+      "taponGasolina": false,
+      "carroceria": false,
+      "limpiadores": false
+    },
+    "interiores": {
+      "instrumentosTablero": false,
+      "calefaccion": false,
+      "radio": false,
+      "encendedor": true,
+      "espejoRetrovisor": true,
+      "ceniceros": false,
+      "cinturones": true,
+      "botonesInteriores": true,
+      "manijasInteriores": true,
+      "tapetes": false,
+      "vestiduras": false,
+      "bocinasClaxon": true
+    }
+  },
+  "observaciones": {
+    "tanqueGasolina": "vacio",
+    "accesorios": {
+      "gato": true,
+      "materialGato": true,
+      "llaveRuedas": true,
+      "estucheHerramientas": true,
+      "trianguloSeguridad": true,
+      "llantaRefaccion": false,
+      "extinguidor": false
+    },
+    "componentesMecanicos": {
+      "claxon": false,
+      "taponAceite": false,
+      "taponRadiador": false,
+      "varillaAceite": false,
+      "filtroAire": false,
+      "bateria": false
+    },
+    "necesidades": {
+      "cambioAceite": false,
+      "cambioFiltros": false,
+      "revisarFrenos": false,
+      "cambioLlantas": false,
+      "otras": ""
+    }
+  },
+  "descripcion": "Simon jefe"
+}
