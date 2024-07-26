@@ -26,6 +26,7 @@ class OrdenTrabajoModel {
             ot.fecha_inicio,
             ot.fecha_fin,
             ot.estado,
+            ot.descripcion,
             c.id AS cliente_id,
             c.folio AS folio_cliente,
             c.nombre AS nombre_cliente,
@@ -68,6 +69,7 @@ class OrdenTrabajoModel {
             ot.fecha_inicio,
             ot.fecha_fin,
             ot.estado,
+            ot.descripcion,
             c.id AS cliente_id,
             c.folio AS folio_cliente,
             c.nombre AS nombre_cliente,
@@ -356,11 +358,12 @@ class OrdenTrabajoModel {
 
       const [result] = await connection.execute(
         `
-        INSERT INTO orden_trabajo (folio, fecha_inicio, estado, cliente_id, vehiculo_id, empleado_id, sucursal_id)
-        VALUES (?, CURDATE(), 'Diagnostico', ?, ?, ?, ?)
+        INSERT INTO orden_trabajo (folio, fecha_inicio, estado, descripcion, cliente_id, vehiculo_id, empleado_id, sucursal_id)
+        VALUES (?, CURDATE(), 'Diagnostico', ?, ?, ?, ?, ?)
         `,
         [
           nuevoFolio,
+          ordenTrabajo.descripcion,
           ordenTrabajo.cliente,
           ordenTrabajo.vehiculo,
           ordenTrabajo.empleado_id,
@@ -394,18 +397,48 @@ class OrdenTrabajoModel {
   async agregarPaquete({nombre, precio, orden_id}) {
     await this.connect();
     try {  
-      const [result] = await this.connection.execute(
-        'INSERT INTO paquete_orden (nombre, precio, orden_id) VALUES (?, ?, ?)',
-        [nombre, precio, orden_id]
+      let res;
+      let response = {};
+      const [existingPackage] = await this.connection.execute(
+        'SELECT id FROM paquete_orden WHERE nombre = ? AND orden_id = ?',
+        [nombre, orden_id]
       );
   
-      return result.insertId;
+      if (existingPackage.length > 0) {
+        // El paquete ya existe, puedes manejarlo según tus necesidades (lanzar un error, actualizar, etc.)
+        response = { 
+          result: false, 
+          message: 'El paquete ya existe para esta orden.', 
+          response: null
+        };
+      } else {
+        res = await this.connection.execute(
+          'INSERT INTO paquete_orden (nombre, precio, orden_id) VALUES (?, ?, ?)',
+          [nombre, precio, orden_id]
+        );
+  
+        if (res[0].insertId) {
+          response = { 
+            result: true, 
+            message: 'El paquete se guardó correctamente.', 
+            response: res[0].insertId 
+          };
+        } else {
+          response = { 
+            result: false, 
+            message: 'El paquete no se guardó correctamente.', 
+            response: null
+          };
+        }
+      }
+  
+      return response;
     } catch (error) {
       throw error;
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async obtenerPaquetes(ordenId) {
     await this.connect();
@@ -438,6 +471,23 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+
+  async finalizarReparacion( id ) {
+    await this.connect();
+    try {
+      const [result] = await this.connection.execute(
+        'UPDATE orden_trabajo SET estado = "Confirmacion" WHERE id = ?',
+        [id]
+      );
+  
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
 
   async obtenerRefaccionesAsignadas(ordenId) {
     await this.connect();
@@ -600,6 +650,39 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+
+  async finalizarOrden(id) {
+    await this.connect();
+    try {
+      const [result] = await this.connection.execute(
+        'UPDATE orden_trabajo SET estado = "Completado" WHERE id = ?',
+        [id]
+      );
+  
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
+  async registrarUtilidad({ total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id }) {
+    await this.connect();
+    try {
+      const [result] = await this.connection.execute(
+        'INSERT INTO utilidad (total, ganancia, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
+        [total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
+      );
+  
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
 }
 
 module.exports = OrdenTrabajoModel;

@@ -31,8 +31,6 @@ class UtilidadModel {
           e.apellido AS empleado_apellido,
           s.id AS sucursal_id, 
           s.nombre AS sucursal_nombre,
-          u.fecha_inicio, 
-          u.fecha_fin, 
           u.total, 
           u.ganancia
         FROM utilidad u

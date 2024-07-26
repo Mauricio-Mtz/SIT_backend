@@ -106,7 +106,7 @@ class citaController {
   }
 
   async aprobarOrdenTrabajo(req, res) {
-    let { citaId, nombre, apellido, numero, correo, contrasena, marca, modelo, año, tipo, cliente, vehiculo, sucursal, empleado, } = req.body;
+    let { citaId, nombre, apellido, numero, correo, contrasena, marca, modelo, año, tipo, descripcion, cliente, vehiculo, sucursal, empleado, } = req.body;
     try {
       // Crear folio de la orden de trabajo (ejemplo: OT-00001)
       const folioOT = await this.citaModel.generarNuevoFolio();
@@ -128,14 +128,8 @@ class citaController {
 
       // Crear la orden de trabajo en la base de datos
       const ordenTrabajoId = await this.citaModel.crearOrdenTrabajo({
-        citaId,
         folio: folioOT,
-        marca,
-        modelo,
-        año,
-        tipo,
-        fecha_inicio: new Date().toISOString().split("T")[0],
-        estado: "Esperando diagnóstico",
+        descripcion: descripcion,
         cliente_id: cliente,
         vehiculo_id: vehiculo,
         empleado_id: empleado,

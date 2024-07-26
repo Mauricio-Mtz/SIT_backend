@@ -36,6 +36,7 @@ class CitaModel {
                 sucursal.nombre AS sucursal,
                 servicio.nombre AS servicio,
                 cita.status,
+                cita.descripcion,
                 cita.cliente_id,
                 cita.vehiculo_id,
                 cita.sucursal_id,
@@ -147,7 +148,6 @@ class CitaModel {
     }
   }
 
-
   async aprobarOrdenTrabajo(citaId) {
     await this.connect();
     try {
@@ -232,14 +232,14 @@ class CitaModel {
       }
     }
 
-  async crearOrdenTrabajo({ folio, cliente_id, vehiculo_id, empleado_id, sucursal_id }) {
+  async crearOrdenTrabajo({ folio, descripcion, cliente_id, vehiculo_id, empleado_id, sucursal_id }) {
     await this.connect();
     try {
   
       // Insertar la orden de trabajo en la tabla orden_trabajo
       const [result] = await this.connection.execute(
-        "INSERT INTO orden_trabajo (folio, fecha_inicio, estado, cliente_id, vehiculo_id, empleado_id, sucursal_id) VALUES (?, CURDATE(), 'Diagnostico', ?, ?, ?, ?)",
-        [folio, cliente_id, vehiculo_id, empleado_id, sucursal_id]
+        "INSERT INTO orden_trabajo (folio, fecha_inicio, estado, descripcion, cliente_id, vehiculo_id, empleado_id, sucursal_id) VALUES (?, CURDATE(), 'Diagnostico', ?, ?, ?, ?, ?)",
+        [folio, descripcion, cliente_id, vehiculo_id, empleado_id, sucursal_id]
       );
   
       // Obtener el ID de la orden de trabajo recién insertada

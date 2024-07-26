@@ -97,11 +97,13 @@ class OrdenTrabajoController {
   }
 
   async guardarCotizacion(req, res) {
-    const { ordenId, ordenFolio, cotizacionCompleta, proceso, estado } = req.body;
-    const filePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
+    const { ordenFolio, reparacion, cotizacionCompleta, estado } = req.body;
+    const filePathCotizacion = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
+    const filePathReparacion = path.join(__dirname, '..', 'reparaciones', `${ordenFolio}.json`);
   
     try {
-      fs.writeFileSync(filePath, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
+      fs.writeFileSync(filePathCotizacion, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
+      fs.writeFileSync(filePathReparacion, JSON.stringify(reparacion, null, 2), 'utf8');
   
       // await this.ordenTrabajoModel.siguientePaso(ordenId, proceso, estado);
   
@@ -113,8 +115,9 @@ class OrdenTrabajoController {
   }
 
   async modificarCotizacion(req, res) {
-    const { cotizacionCompleta, ordenFolio } = req.body;
+    const { cotizacionCompleta, reparacion, ordenFolio } = req.body;
     const filePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
+    const filePathReparacion = path.join(__dirname, '..', 'reparaciones', `${ordenFolio}.json`);
   
     try {
       // Verifica si el archivo existe
@@ -122,6 +125,7 @@ class OrdenTrabajoController {
   
       // Escribe el contenido en el archivo (reemplaza si existe)
       await fsP.writeFile(filePath, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
+      await fsP.writeFile(filePathReparacion, JSON.stringify(reparacion, null, 2), 'utf8');
   
       if (fileExists) {
         res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
@@ -130,6 +134,55 @@ class OrdenTrabajoController {
       }
     } catch (error) {
       console.error('Error al guardar el diagnóstico:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async obtenerReparacion(req, res) {
+    const filePath = path.join(__dirname, '..', 'reparaciones', `${req.params.folio}.json`);
+
+    try {
+      // Verifica si el archivo existe
+      await fsP.access(filePath);
+  
+      // Lee el contenido del archivo
+      const data = await fsP.readFile(filePath, 'utf8');
+      const jsonData = JSON.parse(data);
+      return res.status(200).json({jsonData, result: true});
+    } catch (error) {
+      return res.status(200).json({ message: 'Archivo de diagnóstico no encontrado', result: false });
+    }
+  }
+
+  async modificarReparacion(req, res) {
+    const { reparacion, ordenFolio } = req.body;
+    const filePath = path.join(__dirname, '..', 'reparaciones', `${ordenFolio}.json`);
+  
+    try {
+      // Verifica si el archivo existe
+      const fileExists = await fsP.access(filePath).then(() => true).catch(() => false);
+  
+      // Escribe el contenido en el archivo (reemplaza si existe)
+      await fsP.writeFile(filePath, JSON.stringify(reparacion, null, 2), 'utf8');
+  
+      if (fileExists) {
+        res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
+      } else {
+        res.status(200).json({ message: 'Archivo creado exitosamente' });
+      }
+    } catch (error) {
+      console.error('Error al guardar el diagnóstico:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  async finalizarReparacion(req, res) {
+    try {
+      const { ordenId } = req.body; // Asegúrate de obtener 'ordenId' del body del request
+      const result = await this.ordenTrabajoModel.finalizarReparacion(ordenId); // Pasa el 'ordenId' a la función del modelo
+      res.status(200).json(result); // Responde con el resultado
+    } catch (error) {
+      console.error('Error al finalizar la reparación:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
@@ -209,8 +262,8 @@ class OrdenTrabajoController {
 
   async agregarPaquete(req, res) {
     try {
-      const paqueteOrdenId = await this.ordenTrabajoModel.agregarPaquete(req.body);
-      res.status(201).json({ message: 'Paquete asignado correctamente a la orden de trabajo', paqueteOrdenId });
+      const resu = await this.ordenTrabajoModel.agregarPaquete(req.body);
+      res.status(201).json({ result: resu.result, message: resu.message, response: resu.response });
     } catch (error) {
       console.error('Error al agregar paquete a la orden de trabajo:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
@@ -280,6 +333,31 @@ class OrdenTrabajoController {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+
+  async finalizarOrden(req, res) {
+    try {
+      const { total, estado, ordenId, clienteId, empleadoId, sucursalId } = req.body;
+  
+      // Finalizar la reparación y actualizar el estado de la orden
+      await this.ordenTrabajoModel.finalizarOrden(ordenId);
+  
+      // Registrar la utilidad (ganancia)
+      const utilidad = await this.ordenTrabajoModel.registrarUtilidad({
+        total,
+        ganancia: total * 0.3, // Asumiendo una ganancia del 30%
+        orden_trabajo_id: ordenId,
+        cliente_id: clienteId,
+        empleado_id: empleadoId,
+        sucursal_id: sucursalId,
+      });
+  
+      res.status(200).json({ message: 'Orden finalizada y utilidad registrada', utilidad });
+    } catch (error) {
+      console.error('Error al finalizar la orden:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+  
 }
 
 module.exports = new OrdenTrabajoController();

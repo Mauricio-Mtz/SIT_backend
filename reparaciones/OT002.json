@@ -1,0 +1,60 @@
+{
+  "informacion": {
+    "fecha": "2024-07-26",
+    "direccion": "Dirección de la Sucursal 1"
+  },
+  "cliente": {
+    "nombre": "Pedro",
+    "apellido": "Ramírez",
+    "correo": "pedro@example.com",
+    "telefono": "5544332211",
+    "codigo_postal": "76680",
+    "rfc": "1234567890123",
+    "direccion": "Calle de los Robles 456"
+  },
+  "vehiculo": {
+    "modelo": "Fiesta",
+    "tipo": "Pequeño",
+    "marca": "Ford",
+    "color": "Rojo",
+    "placas": "ADH-153",
+    "numeroSerie": "1HGCA83636A223456",
+    "numeroMotor": "56789NHBJKMFE",
+    "kilometros": "23,489"
+  },
+  "paquetes": [
+    {
+      "id": 22,
+      "nombre": "Paquete IV - Banda de Distribución",
+      "precio": 4640,
+      "orden_id": 3,
+      "realizado": false
+    },
+    {
+      "id": 23,
+      "nombre": "Paquete II - Servicio Mayor",
+      "precio": 12,
+      "orden_id": 3,
+      "realizado": false
+    },
+    {
+      "id": 24,
+      "nombre": "Paquete VI - Servicio de Transmisión (Automático)",
+      "precio": 2320,
+      "orden_id": 3,
+      "realizado": false
+    }
+  ],
+  "refacciones": [
+    {
+      "id": 64,
+      "numero_parte": "123451",
+      "descripcion": "Filtro de aceite",
+      "cantidad": 1,
+      "precio": "30.15",
+      "orden_id": 3,
+      "refaccion_id": 1
+    }
+  ],
+  "notas": ""
+}

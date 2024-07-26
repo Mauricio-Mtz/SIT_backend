@@ -1,0 +1,81 @@
+{
+  "informacion": {
+    "fecha": "2024-07-25",
+    "direccion": "Dirección de la Sucursal 1"
+  },
+  "cliente": {
+    "nombre": "Pedro",
+    "apellido": "Ramírez",
+    "correo": "pedro@example.com",
+    "telefono": "5544332211",
+    "codigo_postal": "76680",
+    "rfc": "1234567890123",
+    "direccion": "Calle de los Robles 456"
+  },
+  "vehiculo": {
+    "modelo": "Forza",
+    "tipo": "Pequeño",
+    "marca": "Horizon",
+    "color": "Verde",
+    "placas": "ABC-123",
+    "numeroSerie": "1HGCM82633A123456",
+    "numeroMotor": "123ABC789XYZ",
+    "kilometros": "50,000"
+  },
+  "paquetes": [
+    {
+      "id": 19,
+      "nombre": "Paquete I - Servicio Menor",
+      "precio": 13435,
+      "orden_id": 1
+    },
+    {
+      "id": 20,
+      "nombre": "Paquete VI - Servicio de Transmisión (Automático)",
+      "precio": 13435,
+      "orden_id": 1
+    },
+    {
+      "id": 21,
+      "nombre": "Paquete IV - Banda de Distribución",
+      "precio": 13435,
+      "orden_id": 1
+    }
+  ],
+  "refacciones": [
+    {
+      "id": 61,
+      "numero_parte": "123451",
+      "descripcion": "Filtro de aceite",
+      "cantidad": 2,
+      "precio": "30.15",
+      "orden_id": 1,
+      "refaccion_id": 1
+    },
+    {
+      "id": 62,
+      "numero_parte": "123452",
+      "descripcion": "Tornillos",
+      "cantidad": 1,
+      "precio": "16.50",
+      "orden_id": 1,
+      "refaccion_id": 2
+    },
+    {
+      "id": 63,
+      "numero_parte": "123454",
+      "descripcion": "Llanta",
+      "cantidad": 2,
+      "precio": "60.71",
+      "orden_id": 1,
+      "refaccion_id": 4
+    }
+  ],
+  "costos": {
+    "descuento": "0.00",
+    "costo_total_sin_iva": "40503.22",
+    "valor_iva": "6480.52",
+    "costo_total_con_iva": "46983.74"
+  },
+  "descripcion": ""
+}

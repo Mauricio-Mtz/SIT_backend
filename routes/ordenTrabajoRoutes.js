@@ -14,6 +14,10 @@ router.get('/obtenerCotizacion/:folio', ordenTrabajoController.obtenerCotizacion
 router.post('/guardarCotizacion', ordenTrabajoController.guardarCotizacion.bind(ordenTrabajoController));
 router.post('/modificarCotizacion', ordenTrabajoController.modificarCotizacion.bind(ordenTrabajoController));
 
+router.get('/obtenerReparacion/:folio', ordenTrabajoController.obtenerReparacion.bind(ordenTrabajoController));
+router.post('/modificarReparacion', ordenTrabajoController.modificarReparacion.bind(ordenTrabajoController));
+router.post('/finalizarReparacion', ordenTrabajoController.finalizarReparacion.bind(ordenTrabajoController));
+
 router.post('/verificarContrasena', ordenTrabajoController.verificarContrasena.bind(ordenTrabajoController));
 router.get('/serviciosPorOrden/:id', ordenTrabajoController.serviciosPorOrden.bind(ordenTrabajoController));
 router.post('/registrar', ordenTrabajoController.createOrdenTrabajo.bind(ordenTrabajoController));
@@ -25,5 +29,7 @@ router.post('/eliminarPaquete', ordenTrabajoController.eliminarPaquete.bind(orde
 router.get('/obtenerRefaccionesAsignadas/:id', ordenTrabajoController.obtenerRefaccionesAsignadas.bind(ordenTrabajoController));
 router.post('/agregarRefaccion', ordenTrabajoController.agregarRefaccion.bind(ordenTrabajoController));
 router.post('/eliminarRefaccion', ordenTrabajoController.eliminarRefaccion.bind(ordenTrabajoController));
+
+router.post('/finalizarOrden', ordenTrabajoController.finalizarOrden.bind(ordenTrabajoController));
 
 module.exports = router;
