@@ -1,0 +1,87 @@
+{
+  "informacion": {
+    "fecha": "2024-08-02",
+    "direccion": ""
+  },
+  "cliente": {
+    "nombre": "Pedro",
+    "apellido": "Ramírez",
+    "correo": "pedro@example.com",
+    "telefono": "5544332211",
+    "codigo_postal": "87490",
+    "rfc": "MDHFY2638DHYE",
+    "direccion": "Calle de los Robles 456"
+  },
+  "vehiculo": {
+    "modelo": "Fiesta",
+    "tipo": "Chico",
+    "marca": "Ford",
+    "color": "Negro",
+    "placas": "98J-837",
+    "numeroSerie": "1HGCM82633A123456",
+    "numeroMotor": "12435JSG837764",
+    "kilometros": "34900"
+  },
+  "paquetes": [
+    {
+      "id": 25,
+      "nombre": "Paquete I - Servicio Menor",
+      "precio": 1233,
+      "orden_id": 2,
+      "realizado": true
+    },
+    {
+      "id": 26,
+      "nombre": "Paquete II - Servicio Mayor",
+      "precio": 1222,
+      "orden_id": 2,
+      "realizado": true
+    },
+    {
+      "id": 27,
+      "nombre": "Paquete VI - Servicio de Transmisión (Automático)",
+      "precio": 3000,
+      "orden_id": 2,
+      "realizado": true
+    }
+  ],
+  "refacciones": [
+    {
+      "id": 65,
+      "numero_parte": "123456",
+      "descripcion": "Parachoques",
+      "cantidad": 1,
+      "precio": "36.46",
+      "orden_id": 2,
+      "refaccion_id": 6
+    },
+    {
+      "id": 66,
+      "numero_parte": "123457",
+      "descripcion": "Rin",
+      "cantidad": 6,
+      "precio": "78.64",
+      "orden_id": 2,
+      "refaccion_id": 7
+    },
+    {
+      "id": 67,
+      "numero_parte": "123458",
+      "descripcion": "Espejo",
+      "cantidad": 2,
+      "precio": "19.36",
+      "orden_id": 2,
+      "refaccion_id": 8
+    },
+    {
+      "id": 68,
+      "numero_parte": "234549",
+      "descripcion": "Pastillas de freno",
+      "cantidad": 2,
+      "precio": "26.84",
+      "orden_id": 2,
+      "refaccion_id": 9
+    }
+  ],
+  "notas": ""
+}

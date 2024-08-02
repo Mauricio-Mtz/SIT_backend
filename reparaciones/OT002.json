@@ -1,6 +1,6 @@
 {
   "informacion": {
-    "fecha": "2024-07-26",
+    "fecha": "2024-08-02",
     "direccion": "Dirección de la Sucursal 1"
   },
   "cliente": {
@@ -24,36 +24,32 @@
   },
   "paquetes": [
     {
-      "id": 22,
-      "nombre": "Paquete IV - Banda de Distribución",
-      "precio": 4640,
+      "id": 36,
+      "nombre": "Paquete III - Servicio Plus",
+      "precio": 1200,
       "orden_id": 3,
+      "status": 1,
       "realizado": false
     },
     {
-      "id": 23,
-      "nombre": "Paquete II - Servicio Mayor",
-      "precio": 12,
-      "orden_id": 3,
-      "realizado": false
-    },
-    {
-      "id": 24,
+      "id": 37,
       "nombre": "Paquete VI - Servicio de Transmisión (Automático)",
-      "precio": 2320,
+      "precio": 2030,
       "orden_id": 3,
+      "status": 1,
       "realizado": false
     }
   ],
   "refacciones": [
     {
-      "id": 64,
-      "numero_parte": "123451",
-      "descripcion": "Filtro de aceite",
-      "cantidad": 1,
-      "precio": "30.15",
+      "id": 69,
+      "numero_parte": "123452",
+      "descripcion": "Tornillos",
+      "cantidad": 10,
+      "precio": "16.50",
       "orden_id": 3,
-      "refaccion_id": 1
+      "refaccion_id": 2,
+      "status": 1
     }
   ],
   "notas": ""

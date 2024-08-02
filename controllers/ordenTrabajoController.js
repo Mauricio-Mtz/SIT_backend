@@ -290,6 +290,16 @@ class OrdenTrabajoController {
     }
   }
 
+  async verificarPaquete(req, res) {
+    try {
+      const result = await this.ordenTrabajoModel.verificarPaquete(req.body);
+      res.status(201).json({ result });
+    } catch (error) {
+      console.error('Error al eliminar paquete a la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
   async obtenerRefaccionesAsignadas(req, res) {
     try {
       const refacciones = await this.ordenTrabajoModel.obtenerRefaccionesAsignadas(req.params.id);
@@ -336,27 +346,25 @@ class OrdenTrabajoController {
 
   async finalizarOrden(req, res) {
     try {
-      const { total, estado, ordenId, clienteId, empleadoId, sucursalId } = req.body;
+      const { total, estado, ordenId, clienteId, empleadoId, sucursalId, paquetes } = req.body;
   
-      // Finalizar la reparación y actualizar el estado de la orden
-      await this.ordenTrabajoModel.finalizarOrden(ordenId);
-  
-      // Registrar la utilidad (ganancia)
-      const utilidad = await this.ordenTrabajoModel.registrarUtilidad({
+      // Finalizar la reparación, registrar la utilidad y actualizar el stock de refacciones
+      const utilidad = await this.ordenTrabajoModel.finalizarYRegistrarUtilidad({
         total,
-        ganancia: total * 0.3, // Asumiendo una ganancia del 30%
-        orden_trabajo_id: ordenId,
-        cliente_id: clienteId,
-        empleado_id: empleadoId,
-        sucursal_id: sucursalId,
+        ordenId,
+        clienteId,
+        empleadoId,
+        sucursalId,
+        paquetes
       });
   
-      res.status(200).json({ message: 'Orden finalizada y utilidad registrada', utilidad });
+      res.status(200).json({ message: 'Orden finalizada, utilidad registrada y stock actualizado', utilidad });
     } catch (error) {
       console.error('Error al finalizar la orden:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+  
   
 }
 

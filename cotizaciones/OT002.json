@@ -1,6 +1,6 @@
 {
   "informacion": {
-    "fecha": "2024-07-26",
+    "fecha": "2024-08-02",
     "direccion": "Dirección de la Sucursal 1"
   },
   "cliente": {
@@ -24,40 +24,37 @@
   },
   "paquetes": [
     {
-      "id": 22,
-      "nombre": "Paquete IV - Banda de Distribución",
-      "precio": 4640,
-      "orden_id": 3
+      "id": 36,
+      "nombre": "Paquete III - Servicio Plus",
+      "precio": 1200,
+      "orden_id": 3,
+      "status": 1
     },
     {
-      "id": 23,
-      "nombre": "Paquete II - Servicio Mayor",
-      "precio": 12,
-      "orden_id": 3
-    },
-    {
-      "id": 24,
+      "id": 37,
       "nombre": "Paquete VI - Servicio de Transmisión (Automático)",
-      "precio": 2320,
-      "orden_id": 3
+      "precio": 2030,
+      "orden_id": 3,
+      "status": 1
     }
   ],
   "refacciones": [
     {
-      "id": 64,
-      "numero_parte": "123451",
-      "descripcion": "Filtro de aceite",
-      "cantidad": 1,
-      "precio": "30.15",
+      "id": 69,
+      "numero_parte": "123452",
+      "descripcion": "Tornillos",
+      "cantidad": 10,
+      "precio": "16.50",
       "orden_id": 3,
-      "refaccion_id": 1
+      "refaccion_id": 2,
+      "status": 1
     }
   ],
   "costos": {
     "descuento": "0.00",
-    "costo_total_sin_iva": "7002.15",
-    "valor_iva": "1120.34",
-    "costo_total_con_iva": "8122.49"
-  },
-  "descripcion": ""
+    "mano_obra": "0.00",
+    "subtotal": "3395.00",
+    "valor_iva": "543.20",
+    "total": "3938.20"
+  }
 }

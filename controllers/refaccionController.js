@@ -68,6 +68,25 @@ class refaccionController {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+  
+  async validarStock(req, res) {
+    try {
+      const { refacciones } = req.body;
+  
+      // Llama al modelo para verificar el stock de cada refacción
+      const stockErrors = await this.refaccionModel.validarStock(refacciones);
+  
+      if (stockErrors.length > 0) {
+        res.status(200).json({ success: true, stockErrors });
+      } else {
+        res.status(200).json({ success: true, stockErrors: [] });
+      }
+    } catch (error) {
+      console.error('Error al verificar el stock:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+  
 }
 
 module.exports = new refaccionController();

@@ -25,6 +25,7 @@ router.post('/registrar', ordenTrabajoController.createOrdenTrabajo.bind(ordenTr
 router.post('/agregarPaquete', ordenTrabajoController.agregarPaquete.bind(ordenTrabajoController));
 router.get('/obtenerPaquetes/:id', ordenTrabajoController.obtenerPaquetes.bind(ordenTrabajoController));
 router.post('/eliminarPaquete', ordenTrabajoController.eliminarPaquete.bind(ordenTrabajoController));
+router.post('/verificarPaquete', ordenTrabajoController.verificarPaquete.bind(ordenTrabajoController));
 
 router.get('/obtenerRefaccionesAsignadas/:id', ordenTrabajoController.obtenerRefaccionesAsignadas.bind(ordenTrabajoController));
 router.post('/agregarRefaccion', ordenTrabajoController.agregarRefaccion.bind(ordenTrabajoController));

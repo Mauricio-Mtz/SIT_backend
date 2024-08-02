@@ -18,11 +18,11 @@ class RefaccionModel {
 
   async registrar(refaccion) {
     await this.connect();
-    const { numero_parte, descripcion, cantidad, precio, ubicacion, sucursal_id, proveedor_id } = refaccion;
+    const { numero_parte, descripcion, cantidad, precio, ganancia, ubicacion, sucursal_id, proveedor_id } = refaccion;
     try {
       const [result] = await this.connection.execute(
-        "INSERT INTO refaccion (numero_parte, descripcion, cantidad, precio, ubicacion, sucursal_id, proveedor_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [numero_parte, descripcion, cantidad, precio, ubicacion, sucursal_id, proveedor_id]
+        "INSERT INTO refaccion (numero_parte, descripcion, cantidad, precio, ganancia, ubicacion, sucursal_id, proveedor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [numero_parte, descripcion, cantidad, precio, ganancia, ubicacion, sucursal_id, proveedor_id]
       );
       return result.insertId;
     } catch (error) {
@@ -49,11 +49,11 @@ class RefaccionModel {
 
   async actualizar(id, refaccion) {
     await this.connect();
-    const { descripcion, cantidad, precio, ubicacion, sucursal_id } = refaccion;
+    const { descripcion, cantidad, precio, ganancia, ubicacion, sucursal_id } = refaccion;
     try {
       const [result] = await this.connection.execute(
-        "UPDATE refaccion SET descripcion = ?, cantidad = ?, precio = ?, ubicacion = ?, sucursal_id = ? WHERE id = ?",
-        [descripcion, cantidad, precio, ubicacion, sucursal_id, id]
+        "UPDATE refaccion SET descripcion = ?, cantidad = ?, precio = ?, ganancia = ?, ubicacion = ?, sucursal_id = ? WHERE id = ?",
+        [descripcion, cantidad, precio, ganancia, ubicacion, sucursal_id, id]
       );
       return result.affectedRows;
     } catch (error) {
@@ -106,6 +106,38 @@ class RefaccionModel {
       await this.disconnect();
     }
   }
+
+  async validarStock(refacciones) {
+    await this.connect();
+  
+    const stockErrors = [];
+  
+    try {
+      for (const refaccion of refacciones) {
+        const [result] = await this.connection.execute(
+          "SELECT cantidad FROM refaccion WHERE id = ?",
+          [refaccion.id]
+        );
+  
+        if (result.length > 0) {
+          const stockDisponible = result[0].cantidad;
+          if (stockDisponible < refaccion.cantidad) {
+            stockErrors.push(refaccion.id);
+          }
+        } else {
+          // Si la refacción no se encuentra en la base de datos, también la añadimos a los errores de stock
+          stockErrors.push(refaccion.id);
+        }
+      }
+  
+      return stockErrors;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
 }
 
 module.exports = RefaccionModel;

@@ -373,16 +373,16 @@ class OrdenTrabajoModel {
 
       const ordenId = result.insertId;
       
-      // Insertar los registros en la tabla servicio_orden
-      for (const servicioId of ordenTrabajo.servicios) {
-        await connection.execute(
-          `
-          INSERT INTO servicio_orden (orden_id, servicio_id)
-          VALUES (?, ?)
-          `,
-          [ordenId, servicioId]
-        );
-      }
+      // // Insertar los registros en la tabla servicio_orden
+      // for (const servicioId of ordenTrabajo.servicios) {
+      //   await connection.execute(
+      //     `
+      //     INSERT INTO servicio_orden (orden_id, servicio_id)
+      //     VALUES (?, ?)
+      //     `,
+      //     [ordenId, servicioId]
+      //   );
+      // }
 
       await connection.commit();
       return ordenId;
@@ -394,7 +394,7 @@ class OrdenTrabajoModel {
     }
   }
 
-  async agregarPaquete({nombre, precio, orden_id}) {
+  async agregarPaquete({nombre, precio, orden_id, status}) {
     await this.connect();
     try {  
       let res;
@@ -413,8 +413,8 @@ class OrdenTrabajoModel {
         };
       } else {
         res = await this.connection.execute(
-          'INSERT INTO paquete_orden (nombre, precio, orden_id) VALUES (?, ?, ?)',
-          [nombre, precio, orden_id]
+          'INSERT INTO paquete_orden (nombre, precio, orden_id, status) VALUES (?, ?, ?, ?)',
+          [nombre, precio, orden_id, status]
         );
   
         if (res[0].insertId) {
@@ -471,6 +471,59 @@ class OrdenTrabajoModel {
       await this.disconnect();
     }
   }
+
+  async verificarPaquete({ nombre, orden_id, refacciones }) {
+    await this.connect();
+    let message = "";
+    let result = true;
+    try {
+      // 1. Obtener el paquete desde la base de datos
+      const [paquete] = await this.connection.execute(
+        'SELECT * FROM paquete_orden WHERE nombre = ? AND orden_id = ?',
+        [nombre, orden_id]
+      );
+      
+      if (paquete.length === 0) {
+        throw new Error('Paquete no encontrado');
+      }
+  
+      // 2. Verificar la cantidad de stock de las refacciones del paquete
+      for (const refaccion of refacciones) {
+        // Consulta para obtener la cantidad actual de la refacción en el stock
+        const [stock] = await this.connection.execute(
+          'SELECT cantidad FROM refaccion WHERE id = ?',
+          [refaccion.id]
+        );
+        
+        if (stock.length === 0) {
+          throw new Error(`Refacción con ID ${refaccion.id} no encontrada en stock`);
+        }
+  
+        // Verificar si la cantidad solicitada es mayor o igual a la disponible
+        if (refaccion.cantidad >= stock[0].cantidad) {
+          console.log("cantidad insuficiente")
+          result = false;
+          message = `Cantidad insuficiente para la refacción con ID ${refaccion.id}`;
+          break;
+        }
+      }
+  
+      // 3. Si todo está bien, actualizar el estado del paquete a 1
+      if (result) {
+        await this.connection.execute(
+          'UPDATE paquete_orden SET status = 1 WHERE nombre = ? AND orden_id = ?',
+          [nombre, orden_id]
+        );
+        message = "Paquete verificado correctamente";
+      }
+
+      return {result, message};
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }  
 
   async finalizarReparacion( id ) {
     await this.connect();
@@ -651,37 +704,127 @@ class OrdenTrabajoModel {
     }
   }
 
-  async finalizarOrden(id) {
+  async finalizarYRegistrarUtilidad({ total, ordenId, clienteId, empleadoId, sucursalId, paquetes }) {
     await this.connect();
     try {
-      const [result] = await this.connection.execute(
-        'UPDATE orden_trabajo SET estado = "Completado" WHERE id = ?',
-        [id]
-      );
-  
-      return result;
+        // Iniciar transacción
+        await this.connection.beginTransaction();
+    
+        // Obtener los nombres de los paquetes utilizados en la orden
+        const paquetesUsados = await this.obtenerPaquetesUsados(ordenId, this.connection);
+        console.log("Paquetes usados: ", paquetesUsados)
+    
+        // Filtrar los paquetes del JSON proporcionado que coincidan con los paquetes usados
+        const refaccionesUsadas = [];
+        for (const paqueteJson of paquetes) {
+            if (paquetesUsados.includes(paqueteJson.nombre)) {
+                for (const refaccion of paqueteJson.refacciones) {
+                    refaccionesUsadas.push(refaccion);
+                }
+            }
+        }
+        console.log("Refacciones de paquetes: ", refaccionesUsadas)
+    
+        // Obtener refacciones de la tabla refaccion_orden
+        const refaccionesOrden = await this.obtenerRefaccionesOrden(ordenId, this.connection);
+        console.log("Refacciones de la tabla: ", refaccionesOrden)
+
+        // Combinar todas las refacciones
+        const todasRefacciones = [...refaccionesUsadas, ...refaccionesOrden];
+        console.log("Todas las refacciones: ",todasRefacciones)
+        
+        // Actualizar el stock de refacciones
+        for (const refaccion of todasRefacciones) {
+            await this.actualizarStockRefaccion(refaccion.id, refaccion.cantidad, this.connection);
+        }
+    
+        // Finalizar la orden de trabajo
+        await this.finalizarOrden(ordenId, this.connection);
+    
+        // Registrar la utilidad
+        const ganancia = total * 0.3; // Asumiendo una ganancia del 30%
+        const utilidadId = await this.registrarUtilidad({
+            total,
+            ganancia,
+            orden_trabajo_id: ordenId,
+            cliente_id: clienteId,
+            empleado_id: empleadoId,
+            sucursal_id: sucursalId,
+            connection: this.connection
+        });
+    
+        // Confirmar transacción
+        await this.connection.commit();
+        return utilidadId;
     } catch (error) {
-      throw error;
+        // Hacer rollback en caso de error
+        await this.connection.rollback();
+        throw error;
     } finally {
-      await this.disconnect();
+        await this.disconnect();
     }
-  }
-  
-  async registrarUtilidad({ total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id }) {
-    await this.connect();
+}
+
+async obtenerPaquetesUsados(ordenId, connection) {
     try {
-      const [result] = await this.connection.execute(
-        'INSERT INTO utilidad (total, ganancia, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
-        [total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
-      );
-  
-      return result.insertId;
+        const [rows] = await connection.execute(
+            'SELECT nombre FROM paquete_orden WHERE orden_id = ?',
+            [ordenId]
+        );
+        return rows.map(row => row.nombre);
     } catch (error) {
-      throw error;
-    } finally {
-      await this.disconnect();
+        throw error;
     }
-  }
+}
+
+async obtenerRefaccionesOrden(ordenId, connection) {
+    try {
+        const [rows] = await connection.execute(
+            'SELECT refaccion_id AS id, cantidad FROM refaccion_orden WHERE orden_id = ?',
+            [ordenId]
+        );
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async finalizarOrden(id, connection) {
+    try {
+        const [result] = await connection.execute(
+            'UPDATE orden_trabajo SET estado = "Completado" WHERE id = ?',
+            [id]
+        );
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async registrarUtilidad({ total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id, connection }) {
+    try {
+        const [result] = await connection.execute(
+            'INSERT INTO utilidad (total, ganancia, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
+            [total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
+        );
+        return result.insertId;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async actualizarStockRefaccion(refaccionId, cantidad, connection) {
+    try {
+        const [result] = await connection.execute(
+            'UPDATE refaccion SET cantidad = cantidad - ? WHERE id = ?',
+            [cantidad, refaccionId]
+        );
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
   
 }
 

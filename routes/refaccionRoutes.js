@@ -7,5 +7,6 @@ router.get('/obtenerTodas/:sucursal', refaccionController.obtenerTodas.bind(refa
 router.get('/obtenerUna/:id', refaccionController.obtenerUna.bind(refaccionController));
 router.put('/actualizar/:id', refaccionController.actualizar.bind(refaccionController));
 router.delete('/eliminar/:id', refaccionController.eliminar.bind(refaccionController));
+router.post('/validarStock', refaccionController.validarStock.bind(refaccionController));
 
 module.exports = router;

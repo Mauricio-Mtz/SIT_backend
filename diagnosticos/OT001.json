@@ -1,0 +1,83 @@
+{
+  "informacion": {
+    "fecha": "",
+    "direccion": ""
+  },
+  "cliente": {
+    "nombre": "Pedro",
+    "apellido": "Ramírez",
+    "correo": "pedro@example.com",
+    "telefono": "5544332211",
+    "codigo_postal": "87490",
+    "rfc": "MDHFY2638DHYE",
+    "direccion": "Calle de los Robles 456"
+  },
+  "vehiculo": {
+    "modelo": "Fiesta",
+    "tipo": "Chico",
+    "marca": "Ford",
+    "color": "Negro",
+    "placas": "98J-837",
+    "numeroSerie": "1HGCM82633A123456",
+    "numeroMotor": "12435JSG837764",
+    "kilometros": "34900"
+  },
+  "inventario": {
+    "exteriores": {
+      "unidadLuces": true,
+      "cuartoLuces": false,
+      "antena": true,
+      "espejoLateral": true,
+      "cristales": false,
+      "emblema": true,
+      "llantas": false,
+      "taponRuedas": false,
+      "molduras": true,
+      "taponGasolina": true,
+      "carroceria": false,
+      "limpiadores": false
+    },
+    "interiores": {
+      "instrumentosTablero": false,
+      "calefaccion": true,
+      "radio": false,
+      "encendedor": false,
+      "espejoRetrovisor": true,
+      "ceniceros": true,
+      "cinturones": false,
+      "botonesInteriores": false,
+      "manijasInteriores": true,
+      "tapetes": false,
+      "vestiduras": false,
+      "bocinasClaxon": false
+    }
+  },
+  "observaciones": {
+    "tanqueGasolina": "1/2",
+    "accesorios": {
+      "gato": true,
+      "materialGato": false,
+      "llaveRuedas": false,
+      "estucheHerramientas": true,
+      "trianguloSeguridad": true,
+      "llantaRefaccion": false,
+      "extinguidor": false
+    },
+    "componentesMecanicos": {
+      "claxon": false,
+      "taponAceite": false,
+      "taponRadiador": false,
+      "varillaAceite": false,
+      "filtroAire": false,
+      "bateria": false
+    },
+    "necesidades": {
+      "cambioAceite": false,
+      "cambioFiltros": false,
+      "revisarFrenos": false,
+      "cambioLlantas": false,
+      "otras": ""
+    }
+  },
+  "descripcion": "El vehiculo cuenta con tal y tal problema"
+}
