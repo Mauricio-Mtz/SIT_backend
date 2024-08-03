@@ -68,6 +68,16 @@ class refaccionController {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+
+  async obtenerTodasS(req, res) {
+    try {
+      const refaccions = await this.refaccionModel.obtenerTodasS();
+      res.status(200).json(refaccions);
+    } catch (error) {
+      console.error('Error al obtener las refaccions:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
   
   async validarStock(req, res) {
     try {

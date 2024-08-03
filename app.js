@@ -13,6 +13,7 @@ const servicioRoutes = require('./routes/servicioRoutes')
 const utilidadRoutes = require('./routes/utilidadRoutes')
 const ordenTrabajoRoutes = require('./routes/ordenTrabajoRoutes')
 const vehiculoRoutes = require('./routes/vehiculoRoutes')
+const jsonRoutes = require('./routes/jsonRoutes')
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/servicio', servicioRoutes);
 app.use('/utilidades', utilidadRoutes);
 app.use('/ordenTrabajo', ordenTrabajoRoutes);
 app.use('/vehiculos', vehiculoRoutes);
+app.use('/json', jsonRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

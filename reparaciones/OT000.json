@@ -28,14 +28,16 @@
       "nombre": "Paquete IV - Banda de Distribución",
       "precio": 1197,
       "orden_id": 1,
-      "status": 1
+      "status": 1,
+      "realizado": false
     },
     {
       "id": 32,
       "nombre": "Paquete II - Servicio Mayor",
       "precio": 1200,
       "orden_id": 1,
-      "status": 1
+      "status": 1,
+      "realizado": false
     }
   ],
   "refacciones": [
@@ -70,11 +72,5 @@
       "status": 1
     }
   ],
-  "costos": {
-    "descuento": "0.00",
-    "mano_obra": "1198.00",
-    "subtotal": "3793.22",
-    "valor_iva": "606.92",
-    "total": "4400.14"
-  }
+  "notas": ""
 }

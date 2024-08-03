@@ -97,8 +97,27 @@ class RefaccionModel {
           FROM refaccion
         INNER JOIN sucursal on refaccion.sucursal_id = sucursal.id
         INNER JOIN proveedor on refaccion.proveedor_id = proveedor.id
-        WHERE sucursal.id = ? AND refaccion.status = 1
+        WHERE sucursal.id = ?
       `,[sucursal]);
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async obtenerTodasS() {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(`
+        SELECT 
+          refaccion.id, 
+          refaccion.numero_parte, 
+          refaccion.descripcion, 
+          refaccion.cantidad 
+        FROM refaccion
+      `,[]);
       return results;
     } catch (error) {
       throw error;
