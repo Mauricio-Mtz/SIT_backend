@@ -18,11 +18,11 @@ class ClienteModel {
 
   async registrar(cliente) {
     await this.connect();
-    const { folio, nombre, apellido, telefono, correo, direccion } = cliente;
+    const { nombre, apellido, telefono, correo, direccion } = cliente;
     try {
       const [result] = await this.connection.execute(
-        'INSERT INTO cliente (folio, nombre, apellido, telefono, correo, direccion) VALUES (?, ?, ?, ?, ?, ?)',
-        [folio, nombre, apellido, telefono, correo, direccion]
+        'INSERT INTO cliente (nombre, apellido, telefono, correo, direccion) VALUES (?, ?, ?, ?, ?)',
+        [nombre, apellido, telefono, correo, direccion]
       );
       return result.insertId;
     } catch (error) {
