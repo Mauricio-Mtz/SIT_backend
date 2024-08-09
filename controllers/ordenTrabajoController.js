@@ -255,10 +255,15 @@ class OrdenTrabajoController {
       const ordenId = await this.ordenTrabajoModel.createOrdenTrabajo(req.body);
       res.status(201).json({ message: 'Orden de trabajo creada exitosamente', ordenId });
     } catch (error) {
-      console.error('Error al crear la orden de trabajo:', error);
-      res.status(500).json({ message: 'Error interno del servidor' });
+      console.error('Error al crear la orden de trabajo:', error.message);
+      if (error.message.includes('El correo electrónico o el teléfono ya están en uso.')) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Error interno del servidor' });
+      }
     }
   }
+  
 
   async agregarPaquete(req, res) {
     try {

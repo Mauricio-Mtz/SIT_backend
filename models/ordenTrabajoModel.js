@@ -1,5 +1,6 @@
 const mysql = require("mysql2/promise");
 const dbConfig = require("../config/dbconfig");
+const crypto = require('crypto');
 
 class OrdenTrabajoModel {
   constructor() {
@@ -48,6 +49,7 @@ class OrdenTrabajoModel {
         JOIN empleado e ON ot.empleado_id = e.id
         JOIN sucursal s ON ot.sucursal_id = s.id
         WHERE empleado_id = ?
+        ORDER BY ot.folio DESC
       `,[empleado_id]
       );
 
@@ -90,6 +92,7 @@ class OrdenTrabajoModel {
         JOIN vehiculo v ON ot.vehiculo_id = v.id
         JOIN empleado e ON ot.empleado_id = e.id
         JOIN sucursal s ON ot.sucursal_id = s.id
+        ORDER BY ot.folio DESC
       `);
       return results;
     } catch (error) {
@@ -283,10 +286,15 @@ class OrdenTrabajoModel {
       );
       const nuevoFolio = rows[0].nuevo_folio;
   
+      // Hash del folio usando SHA-256
+      const hash = crypto.createHash('sha256');
+      hash.update(nuevoFolio.toString());
+      const hashedPassword = hash.digest('hex');
+  
       // Insertar el nuevo cliente en la base de datos
       const [result] = await this.connection.execute(
         'INSERT INTO cliente (folio, nombre, apellido, telefono, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?)',
-        [nuevoFolio, nombre, apellido, numero, correo, nuevoFolio]
+        [nuevoFolio, nombre, apellido, numero, correo, hashedPassword]
       );
   
       return result.insertId;
@@ -317,14 +325,29 @@ class OrdenTrabajoModel {
   async createOrdenTrabajo(ordenTrabajo) {
     await this.connect();
     const connection = this.connection;
-
+  
     try {
       await connection.beginTransaction();
-
+  
+      // Validar si el correo o el teléfono ya existen
+      const [existingClient] = await connection.execute(
+        `
+        SELECT id
+        FROM cliente
+        WHERE correo = ? OR telefono = ?
+        `,
+        [ordenTrabajo.correo, ordenTrabajo.telefono]
+      );
+  
+      if (existingClient.length > 0) {
+        throw new Error('El correo electrónico o el teléfono ya están en uso.');
+      }
+  
       // Obtener el último folio de la tabla orden_trabajo
       const [folios] = await connection.execute(
         "SELECT MAX(folio) AS ultimoFolio FROM orden_trabajo"
       );
+  
       // Generar el nuevo folio
       let nuevoFolio;
       if (folios[0].ultimoFolio) {
@@ -334,7 +357,8 @@ class OrdenTrabajoModel {
       } else {
         nuevoFolio = 'OT000'; // Primer folio
       }
-
+  
+      // Crear cliente si es necesario
       if (ordenTrabajo.cliente === '') {
         const clienteId = await this.crearCliente({
           nombre: ordenTrabajo.nombre,
@@ -344,7 +368,8 @@ class OrdenTrabajoModel {
         });
         ordenTrabajo.cliente = clienteId;
       }
-
+  
+      // Crear vehículo si es necesario
       if (ordenTrabajo.vehiculo === '') {
         const vehiculoId = await this.asignarVehiculo({
           marca: ordenTrabajo.marca,
@@ -355,7 +380,8 @@ class OrdenTrabajoModel {
         });
         ordenTrabajo.vehiculo = vehiculoId;
       }
-
+  
+      // Insertar la orden de trabajo en la base de datos
       const [result] = await connection.execute(
         `
         INSERT INTO orden_trabajo (folio, fecha_inicio, estado, descripcion, cliente_id, vehiculo_id, empleado_id, sucursal_id)
@@ -370,20 +396,9 @@ class OrdenTrabajoModel {
           ordenTrabajo.sucursal_id,
         ]
       );
-
+  
       const ordenId = result.insertId;
-      
-      // // Insertar los registros en la tabla servicio_orden
-      // for (const servicioId of ordenTrabajo.servicios) {
-      //   await connection.execute(
-      //     `
-      //     INSERT INTO servicio_orden (orden_id, servicio_id)
-      //     VALUES (?, ?)
-      //     `,
-      //     [ordenId, servicioId]
-      //   );
-      // }
-
+  
       await connection.commit();
       return ordenId;
     } catch (error) {
@@ -392,7 +407,7 @@ class OrdenTrabajoModel {
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async agregarPaquete({nombre, precio, orden_id, status}) {
     await this.connect();

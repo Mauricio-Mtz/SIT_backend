@@ -1,5 +1,6 @@
 const mysql = require("mysql2/promise");
 const dbConfig = require("../config/dbconfig");
+const crypto = require('crypto');
 
 class CitaModel {
   constructor() {
@@ -120,33 +121,52 @@ class CitaModel {
     const { nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, sucursal_id, servicios } = cita;
     const cliente_id = cita.cliente_id === 0 ? null : cita.cliente_id;
     const vehiculo_id = cita.vehiculo_id === 0 ? null : cita.vehiculo_id;
+  
     try {
-        // Insertar la cita en la tabla cita
-        const [result] = await this.connection.execute(
-            "INSERT INTO cita (nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, vehiculo_id, sucursal_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, vehiculo_id, sucursal_id]
+      // Validar si se necesita crear un nuevo cliente
+      if (cliente_id === null) {
+        // Verificar si el correo o el teléfono ya existen en la base de datos
+        const [existingClient] = await this.connection.execute(
+          `
+          SELECT id
+          FROM cliente
+          WHERE correo = ? OR telefono = ?
+          `,
+          [correo, numero]
         );
-
-        // Obtener el ID de la cita recién insertada
-        const citaId = result.insertId;
-
-        // Insertar las relaciones en la tabla servicio_cita si hay servicios
-        if (servicios && servicios.length > 0) {
-            for (const servicioId of servicios) {
-                await this.connection.execute(
-                    "INSERT INTO servicio_cita (cita_id, servicio_id) VALUES (?, ?)",
-                    [citaId, servicioId]
-                );
-            }
+  
+        if (existingClient.length > 0) {
+          throw new Error('El correo electrónico o el teléfono ya están en uso.');
         }
-
-        return citaId;
+      }
+  
+      // Insertar la cita en la tabla cita
+      const [result] = await this.connection.execute(
+        "INSERT INTO cita (nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, vehiculo_id, sucursal_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [nombre, apellido, correo, numero, descripcion, marca, tipo, año, modelo, fecha, hora, cliente_id, vehiculo_id, sucursal_id]
+      );
+  
+      // Obtener el ID de la cita recién insertada
+      const citaId = result.insertId;
+  
+      // Insertar las relaciones en la tabla servicio_cita si hay servicios
+      if (servicios && servicios.length > 0) {
+        for (const servicioId of servicios) {
+          await this.connection.execute(
+            "INSERT INTO servicio_cita (cita_id, servicio_id) VALUES (?, ?)",
+            [citaId, servicioId]
+          );
+        }
+      }
+  
+      return citaId;
     } catch (error) {
-        throw error;
+      throw error;
     } finally {
-        await this.disconnect();
+      await this.disconnect();
     }
   }
+  
 
   async aprobarOrdenTrabajo(citaId) {
     await this.connect();
@@ -201,10 +221,15 @@ class CitaModel {
       );
       const nuevoFolio = rows[0].nuevo_folio;
   
+      // Hash del folio usando SHA-256
+      const hash = crypto.createHash('sha256');
+      hash.update(nuevoFolio.toString());
+      const hashedPassword = hash.digest('hex');
+  
       // Insertar el nuevo cliente en la base de datos
       const [result] = await this.connection.execute(
         'INSERT INTO cliente (folio, nombre, apellido, telefono, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?)',
-        [nuevoFolio, nombre, apellido, numero, correo, nuevoFolio]
+        [nuevoFolio, nombre, apellido, numero, correo, hashedPassword]
       );
   
       return result.insertId;
@@ -215,22 +240,22 @@ class CitaModel {
     }
   }
 
-    async crearVehiculo({marca, modelo, tipo, año, cliente}) {
-      await this.connect();
-      try {  
-        // Insertar el nuevo vehiculo en la base de datos
-        const [result] = await this.connection.execute(
-          'INSERT INTO vehiculo (marca, modelo, tipo, año, cliente_id) VALUES (?, ?, ?, ?, ?)',
-          [marca, modelo, tipo, año, cliente]
-        );
-    
-        return result.insertId;
-      } catch (error) {
-        throw error;
-      } finally {
-        await this.disconnect();
-      }
+  async crearVehiculo({marca, modelo, tipo, año, cliente}) {
+    await this.connect();
+    try {  
+      // Insertar el nuevo vehiculo en la base de datos
+      const [result] = await this.connection.execute(
+        'INSERT INTO vehiculo (marca, modelo, tipo, año, cliente_id) VALUES (?, ?, ?, ?, ?)',
+        [marca, modelo, tipo, año, cliente]
+      );
+  
+      return result.insertId;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
     }
+  }
 
   async crearOrdenTrabajo({ folio, descripcion, cliente_id, vehiculo_id, empleado_id, sucursal_id }) {
     await this.connect();

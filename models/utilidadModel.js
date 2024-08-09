@@ -46,6 +46,37 @@ class UtilidadModel {
       await this.disconnect();
     }
   }
+
+  async obtenerVentasPorPeriodo(sucursal_id, fecha_inicio, fecha_fin) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(
+        `
+          SELECT 
+              utilidad.id,
+              utilidad.total,
+              utilidad.ganancia,
+              utilidad.fecha,
+              cliente.nombre AS cliente_nombre,
+              cliente.apellido AS cliente_apellido,
+              empleado.nombre AS empleado_nombre,
+              empleado.apellido AS empleado_apellido,
+              sucursal.nombre AS sucursal_nombre
+          FROM utilidad
+          INNER JOIN cliente ON utilidad.cliente_id = cliente.id
+          INNER JOIN empleado ON utilidad.empleado_id = empleado.id
+          INNER JOIN sucursal ON utilidad.sucursal_id = sucursal.id
+          WHERE utilidad.sucursal_id = ? AND utilidad.fecha BETWEEN ? AND ?
+        `,
+        [sucursal_id, fecha_inicio, fecha_fin]
+      );
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }  
 }
 
 module.exports = UtilidadModel;

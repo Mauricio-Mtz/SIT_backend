@@ -70,40 +70,34 @@ class citaController {
 
   async crearCita(req, res) {
     try {
-      if (
-        !req.body.marca ||
-        !req.body.tipo ||
-        !req.body.año ||
-        !req.body.modelo
-      ) {
-        return res
-          .status(401)
-          .json({ message: "Completa toda la información del vehículo" });
+      // Validar campos requeridos
+      if (!req.body.marca || !req.body.tipo || !req.body.año || !req.body.modelo) {
+        return res.status(401).json({ message: "Completa toda la información del vehículo" });
       }
       if (!req.body.sucursal_id) {
-        return res
-          .status(401)
-          .json({ message: "No se ha seleccionado sucursal" });
+        return res.status(401).json({ message: "No se ha seleccionado sucursal" });
       }
       if (!req.body.fecha || !req.body.hora) {
-        return res
-          .status(401)
-          .json({ message: "No se ha seleccionado fecha y hora" });
+        return res.status(401).json({ message: "No se ha seleccionado fecha y hora" });
       }
-
+  
+      // Crear la cita
       const citaId = await this.citaModel.crearCita(req.body);
       if (citaId) {
-        return res
-          .status(200)
-          .json({ message: "Cita agregada correctamente", citaId });
+        return res.status(200).json({ message: "Cita agregada correctamente", citaId });
       } else {
         return res.status(401).json({ message: "Error al agregar la cita" });
       }
     } catch (error) {
-      console.error("Error al crear la cita:", error);
-      return res.status(500).json({ message: "Error interno del servidor" });
+      console.error("Error al crear la cita:", error.message);
+      if (error.message.includes('El correo electrónico o el teléfono ya están en uso.')) {
+        return res.status(400).json({ message: error.message });
+      } else {
+        return res.status(500).json({ message: "Error interno del servidor" });
+      }
     }
   }
+  
 
   async aprobarOrdenTrabajo(req, res) {
     let { citaId, nombre, apellido, numero, correo, contrasena, marca, modelo, año, tipo, descripcion, cliente, vehiculo, sucursal, empleado, } = req.body;
