@@ -77,6 +77,90 @@ class UtilidadModel {
       await this.disconnect();
     }
   }  
+  
+  async obtenerDetalleUtilidad(utilidadId) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(
+        `
+          SELECT 
+              utilidad.id,
+              orden_trabajo.id AS ordenId,
+              orden_trabajo.folio AS ordenFolio,
+              utilidad.total,
+              utilidad.ganancia,
+              utilidad.fecha,
+              cliente.folio AS cliente_folio,
+              cliente.nombre AS cliente_nombre,
+              cliente.apellido AS cliente_apellido,
+              cliente.correo AS cliente_correo,
+              cliente.telefono AS cliente_telefono,
+              empleado.nombre AS empleado_nombre,
+              empleado.apellido AS empleado_apellido,
+              empleado.telefono AS empleado_telefono,
+              empleado.correo AS empleado_correo,
+              sucursal.nombre AS sucursal_nombre,
+              sucursal.telefono AS sucursal_telefono,
+              sucursal.direccion AS sucursal_direccion,
+              orden_trabajo.descripcion AS orden_descripcion
+          FROM utilidad
+          INNER JOIN cliente ON utilidad.cliente_id = cliente.id
+          INNER JOIN empleado ON utilidad.empleado_id = empleado.id
+          INNER JOIN sucursal ON utilidad.sucursal_id = sucursal.id
+          INNER JOIN orden_trabajo ON utilidad.orden_trabajo_id = orden_trabajo.id
+          WHERE utilidad.id = ?
+        `,
+        [utilidadId]
+      );
+      return results.length > 0 ? results[0] : null;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async obtenerPaquetesOrden(ordenTrabajoId) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(
+        `
+          SELECT 
+            nombre, 
+            precio 
+          FROM paquete_orden
+          WHERE orden_id = ?
+        `,
+        [ordenTrabajoId]
+      );
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+
+  async obtenerRefaccionesOrden(ordenTrabajoId) {
+    await this.connect();
+    try {
+      const [results] = await this.connection.execute(
+        `
+          SELECT 
+            *
+          FROM refaccion_orden
+          WHERE orden_id = ?
+        `,
+        [ordenTrabajoId]
+      );
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
+  
 }
 
 module.exports = UtilidadModel;

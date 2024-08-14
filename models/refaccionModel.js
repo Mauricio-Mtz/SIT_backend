@@ -107,7 +107,7 @@ class RefaccionModel {
     }
   }
 
-  async obtenerTodasS() {
+  async obtenerTodasParaPaquetes() {
     await this.connect();
     try {
       const [results] = await this.connection.execute(`

@@ -47,7 +47,8 @@ class EmpleadoController {
       if (deletedRows === 0) {
         return res.status(404).json({ message: 'Empleado no encontrado' });
       }
-      res.status(200).json({ message: 'Empleado eliminado' });
+      const message = deletedRows === 1 ? 'Empleado eliminado' : 'Empleado activado';
+      res.status(200).json({ message });
     } catch (error) {
       console.error('Error al eliminar el empleado:', error);
       res.status(500).json({ message: 'Error interno del servidor' });

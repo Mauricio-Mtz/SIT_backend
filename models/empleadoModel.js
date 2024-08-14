@@ -66,9 +66,17 @@ class EmpleadoModel {
   async eliminarEmpleado(id) {
     await this.connect();
     try {
-      const [result] = await this.connection.execute(
-        'DELETE FROM empleado WHERE id = ?',
+      const [empleado] = await this.connection.execute(
+        'SELECT status FROM empleado WHERE id = ?',
         [id]
+      );
+      if (empleado.length === 0) {
+        throw new Error('Empleado no encontrado');
+      }
+      const nuevoEstado = empleado[0].status === 1 ? 0 : 1;
+      const [result] = await this.connection.execute(
+        'UPDATE empleado SET status = ? WHERE id = ?',
+        [nuevoEstado, id]
       );
       return result.affectedRows;
     } catch (error) {

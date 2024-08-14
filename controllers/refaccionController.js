@@ -69,9 +69,9 @@ class refaccionController {
     }
   }
 
-  async obtenerTodasS(req, res) {
+  async obtenerTodasParaPaquetes(req, res) {
     try {
-      const refaccions = await this.refaccionModel.obtenerTodasS();
+      const refaccions = await this.refaccionModel.obtenerTodasParaPaquetes();
       res.status(200).json(refaccions);
     } catch (error) {
       console.error('Error al obtener las refaccions:', error);

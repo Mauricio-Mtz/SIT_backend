@@ -1,6 +1,6 @@
 {
   "informacion": {
-    "fecha": "2024-08-02",
+    "fecha": "2024-08-10",
     "direccion": "Dirección de la Sucursal 1"
   },
   "cliente": {
@@ -38,38 +38,49 @@
       "orden_id": 1,
       "status": 1,
       "realizado": false
+    },
+    {
+      "id": 38,
+      "nombre": "Paquete I - Servicio Menor",
+      "precio": 1200,
+      "orden_id": 1,
+      "status": 2,
+      "realizado": false
     }
   ],
   "refacciones": [
     {
-      "id": 61,
-      "numero_parte": "123451",
-      "descripcion": "Filtro de aceite",
+      "id": 75,
+      "numero_parte": "152463",
+      "descripcion": "Salchicha",
       "cantidad": 2,
-      "precio": "30.15",
+      "precio": "56.00",
       "orden_id": 1,
-      "refaccion_id": 1,
-      "status": 1
+      "refaccion_id": null,
+      "status": 1,
+      "ganancia": "23.00"
     },
     {
-      "id": 62,
+      "id": 76,
+      "numero_parte": "123451",
+      "descripcion": "Filtro de aceite",
+      "cantidad": 1,
+      "precio": "25.99",
+      "orden_id": 1,
+      "refaccion_id": 1,
+      "status": 1,
+      "ganancia": "12.00"
+    },
+    {
+      "id": 77,
       "numero_parte": "123452",
       "descripcion": "Tornillos",
       "cantidad": 1,
-      "precio": "16.50",
+      "precio": "12.99",
       "orden_id": 1,
       "refaccion_id": 2,
-      "status": 1
-    },
-    {
-      "id": 63,
-      "numero_parte": "123454",
-      "descripcion": "Llanta",
-      "cantidad": 2,
-      "precio": "60.71",
-      "orden_id": 1,
-      "refaccion_id": 4,
-      "status": 1
+      "status": 1,
+      "ganancia": "27.00"
     }
   ],
   "notas": ""

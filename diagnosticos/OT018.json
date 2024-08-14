@@ -1,0 +1,84 @@
+{
+  "informacion": {
+    "fecha": "",
+    "direccion": ""
+  },
+  "cliente": {
+    "folio": "10000011",
+    "nombre": "Almendra",
+    "apellido": "Gerrero",
+    "correo": "almen@gmail.com",
+    "telefono": "5544332213",
+    "codigo_postal": "83793",
+    "rfc": "3676436475864",
+    "direccion": "bla bla de la bla"
+  },
+  "vehiculo": {
+    "modelo": "Neon",
+    "tipo": "7",
+    "marca": "Dodge",
+    "color": "Verde",
+    "placas": "938409",
+    "numeroSerie": "huih6387619u7",
+    "numeroMotor": "0938927",
+    "kilometros": "87348"
+  },
+  "inventario": {
+    "exteriores": {
+      "unidadLuces": true,
+      "cuartoLuces": false,
+      "antena": true,
+      "espejoLateral": true,
+      "cristales": false,
+      "emblema": true,
+      "llantas": true,
+      "taponRuedas": false,
+      "molduras": true,
+      "taponGasolina": false,
+      "carroceria": false,
+      "limpiadores": true
+    },
+    "interiores": {
+      "instrumentosTablero": false,
+      "calefaccion": false,
+      "radio": false,
+      "encendedor": false,
+      "espejoRetrovisor": false,
+      "ceniceros": false,
+      "cinturones": false,
+      "botonesInteriores": false,
+      "manijasInteriores": true,
+      "tapetes": false,
+      "vestiduras": true,
+      "bocinasClaxon": false
+    }
+  },
+  "observaciones": {
+    "tanqueGasolina": "1/2",
+    "accesorios": {
+      "gato": true,
+      "materialGato": false,
+      "llaveRuedas": true,
+      "estucheHerramientas": false,
+      "trianguloSeguridad": true,
+      "llantaRefaccion": false,
+      "extinguidor": false
+    },
+    "componentesMecanicos": {
+      "claxon": false,
+      "taponAceite": false,
+      "taponRadiador": false,
+      "varillaAceite": false,
+      "filtroAire": false,
+      "bateria": false
+    },
+    "necesidades": {
+      "cambioAceite": false,
+      "cambioFiltros": false,
+      "revisarFrenos": false,
+      "cambioLlantas": false,
+      "otras": ""
+    }
+  },
+  "descripcion": "El vehiculo presenta..."
+}

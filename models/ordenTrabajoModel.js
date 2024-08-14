@@ -556,7 +556,6 @@ class OrdenTrabajoModel {
     }
   }
   
-
   async obtenerRefaccionesAsignadas(ordenId) {
     await this.connect();
     try {
@@ -581,7 +580,7 @@ class OrdenTrabajoModel {
       let message = ""; // Inicializa el mensaje como vacío
   
       for (const refaccion of refacciones) {
-        const { numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id } = refaccion;
+        const { numero_parte, descripcion, cantidad, precio, ganancia, orden_id, refaccion_id } = refaccion;
   
         if (refaccion_id) {
           // Verificar si la refacción ya existe en la orden de trabajo
@@ -635,15 +634,15 @@ class OrdenTrabajoModel {
   
               if (cantidad <= stockCantidad) {
                 const [resultInsert] = await this.connection.execute(
-                  'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?)',
-                  [numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id]
+                  'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, ganancia, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                  [numero_parte, descripcion, cantidad, precio, ganancia, orden_id, refaccion_id]
                 );
                 refaccionOrdenIds.push(resultInsert.insertId);
               } else {
                 // Si la cantidad excede el stock, solo agregar la cantidad máxima disponible
                 const [resultInsert] = await this.connection.execute(
-                  'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?)',
-                  [numero_parte, descripcion, stockCantidad, precio, orden_id, refaccion_id]
+                  'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, ganancia, orden_id, refaccion_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                  [numero_parte, descripcion, stockCantidad, precio, ganancia, orden_id, refaccion_id]
                 );
                 refaccionOrdenIds.push(resultInsert.insertId);
               }
@@ -685,8 +684,8 @@ class OrdenTrabajoModel {
           } else {
             // La refacción no existe en la orden de trabajo, insertar una nueva entrada
             const [resultInsert] = await this.connection.execute(
-              'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, orden_id) VALUES (?, ?, ?, ?, ?)',
-              [numero_parte, descripcion, cantidad, precio, orden_id]
+              'INSERT INTO refaccion_orden (numero_parte, descripcion, cantidad, precio, ganancia, orden_id) VALUES (?, ?, ?, ?, ?, ?)',
+              [numero_parte, descripcion, cantidad, precio, ganancia, orden_id]
             );
             refaccionOrdenIds.push(resultInsert.insertId);
           }
@@ -719,55 +718,55 @@ class OrdenTrabajoModel {
     }
   }
 
-  async finalizarYRegistrarUtilidad({ total, ordenId, clienteId, empleadoId, sucursalId, paquetes }) {
+  async finalizarYRegistrarUtilidad({ total, manoObra, ordenId, clienteId, empleadoId, sucursalId, paquetes }) {
     await this.connect();
     try {
         // Iniciar transacción
         await this.connection.beginTransaction();
-    
+
         // Obtener los nombres de los paquetes utilizados en la orden
         const paquetesUsados = await this.obtenerPaquetesUsados(ordenId, this.connection);
-        console.log("Paquetes usados: ", paquetesUsados)
-    
-        // Filtrar los paquetes del JSON proporcionado que coincidan con los paquetes usados
-        const refaccionesUsadas = [];
-        for (const paqueteJson of paquetes) {
-            if (paquetesUsados.includes(paqueteJson.nombre)) {
-                for (const refaccion of paqueteJson.refacciones) {
-                    refaccionesUsadas.push(refaccion);
-                }
-            }
+        console.log("Paquetes usados: ", paquetesUsados);
+
+        // Calcular la ganancia de los paquetes (35% del total de cada paquete)
+        let gananciaPaquetes = 0;
+        for (const paquete of paquetesUsados) {
+          const gananciaPaquete = paquete.precio * 0.35;
+          gananciaPaquetes += gananciaPaquete;
         }
-        console.log("Refacciones de paquetes: ", refaccionesUsadas)
-    
+        console.log("Ganancia de paquetes: ", gananciaPaquetes);
+
         // Obtener refacciones de la tabla refaccion_orden
         const refaccionesOrden = await this.obtenerRefaccionesOrden(ordenId, this.connection);
-        console.log("Refacciones de la tabla: ", refaccionesOrden)
+        console.log("Refacciones usadas: ", refaccionesOrden);
 
-        // Combinar todas las refacciones
-        const todasRefacciones = [...refaccionesUsadas, ...refaccionesOrden];
-        console.log("Todas las refacciones: ",todasRefacciones)
-        
-        // Actualizar el stock de refacciones
-        for (const refaccion of todasRefacciones) {
-            await this.actualizarStockRefaccion(refaccion.id, refaccion.cantidad, this.connection);
+        // Calcular la ganancia de las refacciones
+        let gananciaRefacciones = 0;
+        for (const refaccion of refaccionesOrden) {
+            const gananciaRefaccion = ((refaccion.precio / 100) * refaccion.ganancia) * refaccion.cantidad;
+            gananciaRefacciones += gananciaRefaccion;
         }
-    
+        console.log("Ganancia de refacciones: ", gananciaRefacciones);
+        console.log("Ganancia de mano de obra: ", manoObra);
+
+        // Calcular la ganancia total sumando la mano de obra
+        const gananciaTotal = gananciaPaquetes + gananciaRefacciones + manoObra;
+        console.log("Ganancia total: ", gananciaTotal);
+
         // Finalizar la orden de trabajo
         await this.finalizarOrden(ordenId, this.connection);
-    
+
         // Registrar la utilidad
-        const ganancia = total * 0.3; // Asumiendo una ganancia del 30%
         const utilidadId = await this.registrarUtilidad({
             total,
-            ganancia,
+            ganancia: gananciaTotal,
             orden_trabajo_id: ordenId,
             cliente_id: clienteId,
             empleado_id: empleadoId,
             sucursal_id: sucursalId,
             connection: this.connection
         });
-    
+
         // Confirmar transacción
         await this.connection.commit();
         return utilidadId;
@@ -780,67 +779,65 @@ class OrdenTrabajoModel {
     }
 }
 
-async obtenerPaquetesUsados(ordenId, connection) {
-    try {
-        const [rows] = await connection.execute(
-            'SELECT nombre FROM paquete_orden WHERE orden_id = ?',
-            [ordenId]
-        );
-        return rows.map(row => row.nombre);
-    } catch (error) {
-        throw error;
-    }
-}
+  async obtenerPaquetesUsados(ordenId, connection) {
+      try {
+          const [rows] = await connection.execute(
+              'SELECT nombre, precio FROM paquete_orden WHERE orden_id = ?',
+              [ordenId]
+          );
+          return rows;
+      } catch (error) {
+          throw error;
+      }
+  }
 
-async obtenerRefaccionesOrden(ordenId, connection) {
-    try {
-        const [rows] = await connection.execute(
-            'SELECT refaccion_id AS id, cantidad FROM refaccion_orden WHERE orden_id = ?',
-            [ordenId]
-        );
-        return rows;
-    } catch (error) {
-        throw error;
-    }
-}
+  async obtenerRefaccionesOrden(ordenId, connection) {
+      try {
+          const [rows] = await connection.execute(
+              'SELECT refaccion_id AS id, precio, ganancia, cantidad FROM refaccion_orden WHERE orden_id = ?',
+              [ordenId]
+          );
+          return rows;
+      } catch (error) {
+          throw error;
+      }
+  }
 
-async finalizarOrden(id, connection) {
-    try {
-        const [result] = await connection.execute(
-            'UPDATE orden_trabajo SET estado = "Completado" WHERE id = ?',
-            [id]
-        );
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
+  async actualizarStockRefaccion(refaccionId, cantidad, connection) {
+      try {
+          const [result] = await connection.execute(
+              'UPDATE refaccion SET cantidad = cantidad - ? WHERE id = ?',
+              [cantidad, refaccionId]
+          );
+          return result;
+      } catch (error) {
+          throw error;
+      }
+  }
 
-async registrarUtilidad({ total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id, connection }) {
-    try {
-        const [result] = await connection.execute(
-            'INSERT INTO utilidad (total, ganancia, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
-            [total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
-        );
-        return result.insertId;
-    } catch (error) {
-        throw error;
-    }
-}
+  async finalizarOrden(id, connection) {
+      try {
+          const [result] = await connection.execute(
+              'UPDATE orden_trabajo SET estado = "Completado" WHERE id = ?',
+              [id]
+          );
+          return result;
+      } catch (error) {
+          throw error;
+      }
+  }
 
-async actualizarStockRefaccion(refaccionId, cantidad, connection) {
-    try {
-        const [result] = await connection.execute(
-            'UPDATE refaccion SET cantidad = cantidad - ? WHERE id = ?',
-            [cantidad, refaccionId]
-        );
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
-  
+  async registrarUtilidad({ total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id, connection }) {
+      try {
+          const [result] = await connection.execute(
+              'INSERT INTO utilidad (total, ganancia, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
+              [total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
+          );
+          return result.insertId;
+      } catch (error) {
+          throw error;
+      }
+  }
 }
 
 module.exports = OrdenTrabajoModel;
