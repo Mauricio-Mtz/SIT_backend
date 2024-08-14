@@ -718,7 +718,7 @@ class OrdenTrabajoModel {
     }
   }
 
-  async finalizarYRegistrarUtilidad({ total, manoObra, ordenId, clienteId, empleadoId, sucursalId, paquetes }) {
+  async finalizarYRegistrarUtilidad({ total, manoObra, tipoPago, ordenId, clienteId, empleadoId, sucursalId, paquetes }) {
     await this.connect();
     try {
         // Iniciar transacción
@@ -760,6 +760,7 @@ class OrdenTrabajoModel {
         const utilidadId = await this.registrarUtilidad({
             total,
             ganancia: gananciaTotal,
+            tipoPago: tipoPago,
             orden_trabajo_id: ordenId,
             cliente_id: clienteId,
             empleado_id: empleadoId,
@@ -827,11 +828,11 @@ class OrdenTrabajoModel {
       }
   }
 
-  async registrarUtilidad({ total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id, connection }) {
+  async registrarUtilidad({ total, ganancia, tipoPago, orden_trabajo_id, cliente_id, empleado_id, sucursal_id, connection }) {
       try {
           const [result] = await connection.execute(
-              'INSERT INTO utilidad (total, ganancia, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
-              [total, ganancia, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
+              'INSERT INTO utilidad (total, ganancia, tipo_pago, fecha, orden_trabajo_id, cliente_id, empleado_id, sucursal_id) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?)',
+              [total, ganancia, tipoPago, orden_trabajo_id, cliente_id, empleado_id, sucursal_id]
           );
           return result.insertId;
       } catch (error) {

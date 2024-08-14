@@ -351,12 +351,13 @@ class OrdenTrabajoController {
 
   async finalizarOrden(req, res) {
     try {
-      const { total, manoObra, ordenId, clienteId, empleadoId, sucursalId, paquetes } = req.body;
+      const { total, manoObra, tipoPago, ordenId, clienteId, empleadoId, sucursalId, paquetes } = req.body;
   
       // Finalizar la reparación, registrar la utilidad y actualizar el stock de refacciones
       const utilidad = await this.ordenTrabajoModel.finalizarYRegistrarUtilidad({
         total,
         manoObra,
+        tipoPago,
         ordenId,
         clienteId,
         empleadoId,
