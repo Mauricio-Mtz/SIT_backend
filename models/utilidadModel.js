@@ -47,7 +47,7 @@ class UtilidadModel {
     }
   }
 
-  async obtenerVentasPorPeriodo(sucursal_id, fecha_inicio, fecha_fin) {
+  async obtenerVentasPorPeriodo(fecha_inicio, fecha_fin) {
     await this.connect();
     try {
       const [results] = await this.connection.execute(
@@ -66,9 +66,9 @@ class UtilidadModel {
           INNER JOIN cliente ON utilidad.cliente_id = cliente.id
           INNER JOIN empleado ON utilidad.empleado_id = empleado.id
           INNER JOIN sucursal ON utilidad.sucursal_id = sucursal.id
-          WHERE utilidad.sucursal_id = ? AND utilidad.fecha BETWEEN ? AND ?
+          WHERE utilidad.fecha BETWEEN ? AND ?
         `,
-        [sucursal_id, fecha_inicio, fecha_fin]
+        [fecha_inicio, fecha_fin]
       );
       return results;
     } catch (error) {
