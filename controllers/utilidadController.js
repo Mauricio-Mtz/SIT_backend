@@ -18,9 +18,9 @@ class UtilidadController {
   }
 
   async obtenerVentasPorPeriodo(req, res) {
-    const { sucursal_id, fecha_inicio, fecha_fin } = req.body; // Recibimos el ID de la sucursal y las fechas
+    const { fecha_inicio, fecha_fin } = req.body; // Recibimos el ID de la sucursal y las fechas
     try {
-      const ventas = await this.utilidadModel.obtenerVentasPorPeriodo(sucursal_id, fecha_inicio, fecha_fin);
+      const ventas = await this.utilidadModel.obtenerVentasPorPeriodo(fecha_inicio, fecha_fin);
       res.status(200).json(ventas);
     } catch (error) {
       console.error("Error al obtener las ventas por periodo:", error);
