@@ -102,6 +102,75 @@ class OrdenTrabajoModel {
     }
   }
 
+  async eliminar(id) {
+    await this.connect();
+    const response = {
+      success: false,
+      message: '',
+      details: [],
+    };
+  
+    try {
+      // 1. Verificar si la orden está asociada a una utilidad
+      const [utilidadCheck] = await this.connection.execute(
+        'SELECT COUNT(*) as count FROM utilidad WHERE orden_trabajo_id = ?',
+        [id]
+      );
+  
+      if (utilidadCheck[0].count > 0) {
+        response.message = 'No se puede eliminar la orden de trabajo porque está asociada a una utilidad.';
+        return response;
+      }
+  
+      // 2. Eliminar las refacciones asociadas a la orden
+      const [deleteRefacciones] = await this.connection.execute(
+        'DELETE FROM refaccion_orden WHERE orden_id = ?',
+        [id]
+      );
+      response.details.push({
+        action: 'Eliminar refacciones',
+        affectedRows: deleteRefacciones.affectedRows,
+      });
+  
+      // 3. Eliminar los paquetes asociados a la orden
+      const [deletePaquetes] = await this.connection.execute(
+        'DELETE FROM paquete_orden WHERE orden_id = ?',
+        [id]
+      );
+      response.details.push({
+        action: 'Eliminar paquetes',
+        affectedRows: deletePaquetes.affectedRows,
+      });
+  
+      // 4. Eliminar la orden de trabajo
+      const [deleteOrden] = await this.connection.execute(
+        'DELETE FROM orden_trabajo WHERE id = ?',
+        [id]
+      );
+      
+      if (deleteOrden.affectedRows === 0) {
+        response.message = 'Orden de trabajo no encontrada.';
+        return response;
+      }
+  
+      response.details.push({
+        action: 'Eliminar orden de trabajo',
+        affectedRows: deleteOrden.affectedRows,
+      });
+  
+      response.success = true;
+      response.message = 'Orden de trabajo eliminada exitosamente.';
+      return response;
+  
+    } catch (error) {
+      response.message = 'Error interno del servidor.';
+      response.details.push({ error: error.message });
+      return response;
+    } finally {
+      await this.disconnect();
+    }
+  }  
+
   async finalizaDiagnostico(ordenId, estado) {
     await this.connect();
     const connection = this.connection;

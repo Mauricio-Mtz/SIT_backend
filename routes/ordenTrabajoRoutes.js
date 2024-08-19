@@ -4,6 +4,7 @@ const ordenTrabajoController = require('../controllers/ordenTrabajoController');
 
 router.get('/obtenerTodas', ordenTrabajoController.obtenerTodas.bind(ordenTrabajoController));
 router.get('/obtenerPorEmpleado/:id', ordenTrabajoController.obtenerPorEmpleado.bind(ordenTrabajoController));
+router.delete('/eliminar/:id', ordenTrabajoController.eliminar.bind(ordenTrabajoController));
 
 router.get('/obtenerDiagnostico/:folio', ordenTrabajoController.obtenerDiagnostico.bind(ordenTrabajoController));
 router.post('/guardarDiagnostico', ordenTrabajoController.guardarDiagnostico.bind(ordenTrabajoController));
