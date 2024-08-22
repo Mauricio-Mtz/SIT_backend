@@ -35,22 +35,30 @@ class OrdenTrabajoController {
         // Obtener todas las órdenes de trabajo
         const ordenes = await this.ordenTrabajoModel.obtenerTodas();
 
-        // Directorio que quieres listar (en este caso, la carpeta 'temp')
-        const directoryPath = path.join(__dirname, '..', 'temp');
-        
-        // Leer el contenido del directorio
-        fs.readdir(directoryPath, (err, files) => {
+        // Directorio raíz del proyecto en Render
+        const rootDirectory = '/opt/render/project/src';
+
+        // Leer el contenido del directorio raíz
+        fs.readdir(rootDirectory, { withFileTypes: true }, (err, files) => {
             if (err) {
                 console.error('Error al leer el directorio:', err);
                 return res.status(500).json({ message: 'Error interno del servidor al leer el directorio' });
             }
 
-            console.log('Contenido del directorio temp:', files);
+            // Crear un listado detallado de archivos y carpetas
+            const directoryListing = files.map(file => {
+                return {
+                    name: file.name,
+                    type: file.isDirectory() ? 'directory' : 'file'
+                };
+            });
 
-            // Responder con las órdenes de trabajo y el listado de archivos en el directorio
+            console.log('Contenido del directorio raíz:', directoryListing);
+
+            // Responder con las órdenes de trabajo y el listado de archivos y carpetas en el directorio raíz
             res.status(200).json({
                 ordenes,
-                archivosTemp: files
+                contenidoDirectorio: directoryListing
             });
         });
     } catch (error) {
