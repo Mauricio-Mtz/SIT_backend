@@ -32,13 +32,32 @@ class OrdenTrabajoController {
 
   async obtenerTodas(req, res) {
     try {
-      const ordenes = await this.ordenTrabajoModel.obtenerTodas();
-      res.status(200).json(ordenes);
+        // Obtener todas las órdenes de trabajo
+        const ordenes = await this.ordenTrabajoModel.obtenerTodas();
+
+        // Directorio que quieres listar (en este caso, la carpeta 'temp')
+        const directoryPath = path.join(__dirname, '..', 'temp');
+        
+        // Leer el contenido del directorio
+        fs.readdir(directoryPath, (err, files) => {
+            if (err) {
+                console.error('Error al leer el directorio:', err);
+                return res.status(500).json({ message: 'Error interno del servidor al leer el directorio' });
+            }
+
+            console.log('Contenido del directorio temp:', files);
+
+            // Responder con las órdenes de trabajo y el listado de archivos en el directorio
+            res.status(200).json({
+                ordenes,
+                archivosTemp: files
+            });
+        });
     } catch (error) {
-      console.error('Error al obtener las órdenes de trabajo:', error);
-      res.status(500).json({ message: 'Error interno del servidor' });
+        console.error('Error al obtener las órdenes de trabajo:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
     }
-  }
+}
 
   async eliminar(req, res) {
     try {
