@@ -850,7 +850,7 @@ class OrdenTrabajoModel {
     } finally {
         await this.disconnect();
     }
-}
+  }
 
   async obtenerPaquetesUsados(ordenId, connection) {
       try {

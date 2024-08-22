@@ -40,27 +40,6 @@ class OrdenTrabajoController {
     }
   }
 
-  async eliminar(req, res) {
-    try {
-      const result = await this.ordenTrabajoModel.eliminar(req.params.id);
-  
-      if (!result.success) {
-        return res.status(400).json({
-          message: result.message,
-          details: result.details,
-        });
-      }
-  
-      res.status(200).json({
-        message: result.message,
-        details: result.details,
-      });
-    } catch (error) {
-      console.error('Error al eliminar la orden de trabajo:', error);
-      res.status(500).json({ message: 'Error interno del servidor' });
-    }
-  }  
-
   async obtenerDiagnostico(req, res) {
     const filePath = path.join(__dirname, '..', 'diagnosticos', `${req.params.folio}.json`);
 
@@ -107,7 +86,7 @@ class OrdenTrabajoController {
             text: 'Envío de diagnóstico de parte de Mecánico Express, se adjunta archivo en PDF del diagnóstico.',
             attachments: [
               {
-                filename: `${ordenFolio}.pdf`,
+                filename: `diagnostico_${ordenFolio}.pdf`,
                 path: pdfFilePath
               }
             ]
@@ -166,7 +145,7 @@ class OrdenTrabajoController {
             text: 'Debido a cambios realizados se reenvía de parte de Mecànico Express el diagnóstico, se adjunta archivo en PDF de la moficación del diagnóstico.',
             attachments: [
               {
-                filename: `${ordenFolio}.pdf`,
+                filename: `diagnostico_${ordenFolio}.pdf`,
                 path: pdfFilePath
               }
             ]
@@ -239,7 +218,7 @@ class OrdenTrabajoController {
             text: 'Envío de cotización de parte de Mecánico Express, se adjunta archivo en PDF de la cotización.',
             attachments: [
               {
-                filename: `${ordenFolio}.pdf`,
+                filename: `cotizacion_${ordenFolio}.pdf`,
                 path: pdfFilePath
               }
             ]
@@ -299,7 +278,7 @@ class OrdenTrabajoController {
             text: 'Debido a cambios realizado en la cotización se reenvía la cotización de parte de Mecánico Express. Se adjunta archivo en PDF de la cotización modificada.',
             attachments: [
               {
-                filename: `${ordenFolio}.pdf`,
+                filename: `cotizacion_${ordenFolio}.pdf`,
                 path: pdfFilePath
               }
             ]
@@ -557,6 +536,27 @@ class OrdenTrabajoController {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+  
+  async eliminar(req, res) {
+    try {
+      const result = await this.ordenTrabajoModel.eliminar(req.params.id);
+  
+      if (!result.success) {
+        return res.status(400).json({
+          message: result.message,
+          details: result.details,
+        });
+      }
+  
+      res.status(200).json({
+        message: result.message,
+        details: result.details,
+      });
+    } catch (error) {
+      console.error('Error al eliminar la orden de trabajo:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }  
 }
 
 module.exports = new OrdenTrabajoController();

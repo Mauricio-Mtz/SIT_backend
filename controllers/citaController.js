@@ -149,6 +149,27 @@ class citaController {
       res.status(500).json({ message: "Error interno del servidor" });
     }
   }
+
+  async eliminar(req, res) {
+    try {
+      const result = await this.citaModel.eliminar(req.params.id);
+  
+      if (!result.success) {
+        return res.status(400).json({
+          message: result.message,
+          details: result.details,
+        });
+      }
+  
+      res.status(200).json({
+        message: result.message,
+        details: result.details,
+      });
+    } catch (error) {
+      console.error('Error al eliminar la cita:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
 }
 
 module.exports = new citaController();

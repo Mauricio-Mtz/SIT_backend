@@ -9,5 +9,6 @@ router.get('/obtenerClientePorFolio/:folio', citaController.obtenerClientePorFol
 router.get('/obtenerFechaHoraCitas', citaController.obtenerFechaHoraCitas.bind(citaController));
 router.post('/crearCita', citaController.crearCita.bind(citaController)); // Ejemplo de POST existente 
 router.put('/aprobarOrdenTrabajo', citaController.aprobarOrdenTrabajo.bind(citaController));
+router.delete('/eliminar/:id', citaController.eliminar.bind(citaController));
 
 module.exports = router;

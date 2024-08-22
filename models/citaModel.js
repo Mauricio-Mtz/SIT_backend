@@ -167,7 +167,6 @@ class CitaModel {
     }
   }
   
-
   async aprobarOrdenTrabajo(citaId) {
     await this.connect();
     try {
@@ -302,6 +301,49 @@ class CitaModel {
         await this.disconnect();
     }
   }
-
+  
+  async eliminar(id) {
+    await this.connect();
+    const response = {
+      success: false,
+      message: '',
+      details: [],
+    };
+  
+    try {
+      // 1. Eliminar las relaciones en la tabla servicio_cita si existen
+      await this.connection.execute(
+        'DELETE FROM servicio_cita WHERE cita_id = ?',
+        [id]
+      );
+  
+      // 2. Eliminar la cita
+      const [deleteCita] = await this.connection.execute(
+        'DELETE FROM cita WHERE id = ?',
+        [id]
+      );
+      
+      if (deleteCita.affectedRows === 0) {
+        response.message = 'Cita no encontrada.';
+        return response;
+      }
+  
+      response.details.push({
+        action: 'Eliminar cita',
+        affectedRows: deleteCita.affectedRows,
+      });
+  
+      response.success = true;
+      response.message = 'Cita eliminada exitosamente.';
+      return response;
+  
+    } catch (error) {
+      response.message = 'Error interno del servidor.';
+      response.details.push({ error: error.message });
+      return response;
+    } finally {
+      await this.disconnect();
+    }
+  }  
 }
 module.exports = CitaModel;
