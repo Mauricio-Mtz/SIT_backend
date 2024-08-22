@@ -399,17 +399,20 @@ class OrdenTrabajoModel {
       await connection.beginTransaction();
   
       // Validar si el correo o el teléfono ya existen
-      const [existingClient] = await connection.execute(
-        `
-        SELECT id
-        FROM cliente
-        WHERE correo = ? OR telefono = ?
-        `,
-        [ordenTrabajo.correo, ordenTrabajo.telefono]
-      );
-  
-      if (existingClient.length > 0) {
-        throw new Error('El correo electrónico o el teléfono ya están en uso.');
+      
+      if (ordenTrabajo.cliente === '') {
+        const [existingClient] = await connection.execute(
+          `
+          SELECT id
+          FROM cliente
+          WHERE correo = ? OR telefono = ?
+          `,
+          [ordenTrabajo.correo, ordenTrabajo.telefono]
+        );
+        
+        if (existingClient.length > 0) {
+          throw new Error('El correo electrónico o el teléfono ya están en uso.');
+        }
       }
   
       // Obtener el último folio de la tabla orden_trabajo
