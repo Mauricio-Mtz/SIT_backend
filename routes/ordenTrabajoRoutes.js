@@ -3,14 +3,21 @@ const router = express.Router();
 const ordenTrabajoController = require('../controllers/ordenTrabajoController');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-      const tempDir = path.join(__dirname, '..', 'temp'); // Ruta relativa a la ubicación actual del archivo
-      cb(null, tempDir); // Guardar archivos en la carpeta temp
+    const tempDir = path.join(__dirname, '..', 'temp'); // Ruta relativa a la ubicación actual del archivo
+
+    // Asegúrate de que la carpeta temp exista
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    cb(null, tempDir); // Guardar archivos en la carpeta temp
   },
   filename: function (req, file, cb) {
-      cb(null, file.originalname); // Usar el nombre original del archivo
+    cb(null, file.originalname); // Usar el nombre original del archivo
   }
 });
 const upload = multer({ storage: storage });
