@@ -5,13 +5,14 @@ const multer = require('multer');
 const path = require('path');
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'temp/'); // Ruta temporal para guardar archivos antes de moverlos
-    },
-    filename: function (req, file, cb) {
+  destination: function (req, file, cb) {
+      const tempDir = path.join(__dirname, '..', 'temp'); // Ruta relativa a la ubicación actual del archivo
+      cb(null, tempDir); // Guardar archivos en la carpeta temp
+  },
+  filename: function (req, file, cb) {
       cb(null, file.originalname); // Usar el nombre original del archivo
-    }
-  });
+  }
+});
 const upload = multer({ storage: storage });
 
 router.get('/obtenerTodas', ordenTrabajoController.obtenerTodas.bind(ordenTrabajoController));

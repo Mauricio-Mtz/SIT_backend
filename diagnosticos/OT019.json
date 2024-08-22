@@ -1,0 +1,84 @@
+{
+  "informacion": {
+    "fecha": "2024-08-22",
+    "direccion": "Dirección de la Sucursal 1"
+  },
+  "cliente": {
+    "folio": "10000002",
+    "nombre": "Mauricio",
+    "apellido": "Martínez",
+    "correo": "maurimtz07@gmail.com",
+    "telefono": "4411108592",
+    "codigo_postal": "76680",
+    "rfc": "FMDJSKDUSJKFO",
+    "direccion": "Vicente Guerrero S/N"
+  },
+  "vehiculo": {
+    "modelo": "Audi A3",
+    "tipo": "9",
+    "marca": "Audi",
+    "color": "Verde",
+    "placas": "ABC-123",
+    "numeroSerie": "1HGCA83636A223456",
+    "numeroMotor": "123ABC789XYZ",
+    "kilometros": "50,000"
+  },
+  "inventario": {
+    "exteriores": {
+      "unidadLuces": false,
+      "cuartoLuces": false,
+      "antena": false,
+      "espejoLateral": false,
+      "cristales": false,
+      "emblema": true,
+      "llantas": false,
+      "taponRuedas": false,
+      "molduras": false,
+      "taponGasolina": false,
+      "carroceria": false,
+      "limpiadores": false
+    },
+    "interiores": {
+      "instrumentosTablero": false,
+      "calefaccion": false,
+      "radio": false,
+      "encendedor": false,
+      "espejoRetrovisor": false,
+      "ceniceros": false,
+      "cinturones": false,
+      "botonesInteriores": false,
+      "manijasInteriores": false,
+      "tapetes": false,
+      "vestiduras": false,
+      "bocinasClaxon": false
+    }
+  },
+  "observaciones": {
+    "tanqueGasolina": 4,
+    "accesorios": {
+      "gato": false,
+      "materialGato": false,
+      "llaveRuedas": false,
+      "estucheHerramientas": false,
+      "trianguloSeguridad": false,
+      "llantaRefaccion": false,
+      "extinguidor": false
+    },
+    "componentesMecanicos": {
+      "claxon": false,
+      "taponAceite": false,
+      "taponRadiador": false,
+      "varillaAceite": false,
+      "filtroAire": false,
+      "bateria": false
+    },
+    "necesidades": {
+      "cambioAceite": false,
+      "cambioFiltros": false,
+      "revisarFrenos": false,
+      "cambioLlantas": false,
+      "otras": ""
+    }
+  },
+  "descripcion": ""
+}

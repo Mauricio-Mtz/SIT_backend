@@ -89,7 +89,7 @@ class OrdenTrabajoController {
       if (req.file && req.file.path) {
         console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
 
-        const pdfFilePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.pdf`);
+        const pdfFilePath = path.join(__dirname, '..', 'temp', `${ordenFolio}.pdf`);
         console.log('Ruta final del archivo PDF:', pdfFilePath);
 
         // Mover el archivo PDF a la ruta final
@@ -148,7 +148,7 @@ class OrdenTrabajoController {
       if (req.file && req.file.path) {
         console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
 
-        const pdfFilePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.pdf`);
+        const pdfFilePath = path.join(__dirname, '..', 'temp', `${ordenFolio}.pdf`);
         console.log('Ruta final del archivo PDF:', pdfFilePath);
 
         // Mover el archivo PDF a la ruta final
@@ -221,7 +221,7 @@ class OrdenTrabajoController {
       if (req.file && req.file.path) {
         console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
 
-        const pdfFilePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.pdf`);
+        const pdfFilePath = path.join(__dirname, '..', 'temp', `${ordenFolio}.pdf`);
         console.log('Ruta final del archivo PDF:', pdfFilePath);
 
         // Mover el archivo PDF a la ruta final
@@ -281,7 +281,7 @@ class OrdenTrabajoController {
       if (req.file && req.file.path) {
         console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
 
-        const pdfFilePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.pdf`);
+        const pdfFilePath = path.join(__dirname, '..', 'temp', `${ordenFolio}.pdf`);
         console.log('Ruta final del archivo PDF:', pdfFilePath);
 
         // Mover el archivo PDF a la ruta final
