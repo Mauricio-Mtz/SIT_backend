@@ -146,19 +146,35 @@ class OrdenTrabajoController {
 
       // Guardar el archivo PDF si existe
       if (req.file && req.file.path) {
-        console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
+        console.log('Ruta creada para almacenar el pdf:', req.file.path);
+
+        // Obtener el directorio donde se encuentra el archivo
+        const directoryPath = path.dirname(req.file.path);
+
+        // Listar el contenido del directorio
+        fs.readdir(directoryPath, (err, files) => {
+            if (err) {
+                return console.log(`Error al leer el directorio: ${err.message}`);
+            }
+
+            console.log('Contenido del directorio:');
+            files.forEach(file => {
+                console.log(file);
+            });
+        });
 
         const pdfFilePath = path.join(__dirname, '..', 'temp', `${ordenFolio}.pdf`);
-        console.log('Ruta final del archivo PDF:', pdfFilePath);
+        // console.log('Ruta final del archivo PDF:', pdfFilePath);
 
         // Mover el archivo PDF a la ruta final
-        await fsP.rename(req.file.path, pdfFilePath);
+        // await fsP.rename(req.file.path, pdfFilePath);
 
         // Verifica si el archivo PDF se ha movido correctamente
-        if (await fsP.access(pdfFilePath).then(() => true).catch(() => false)) {
-          console.log('Archivo PDF creado correctamente:', pdfFilePath);
+        if (await fsP.access(req.file.path).then(() => true).catch(() => false)) {
+          // console.log('Archivo PDF creado correctamente:', pdfFilePath);
 
           // Enviar el archivo PDF por correo
+          console.log("Ruta del archivo enviado: ",req.file.path)
           const mailOptions = {
             from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
             to: correo, // Dirección de correo proporcionada en el request
@@ -167,7 +183,7 @@ class OrdenTrabajoController {
             attachments: [
               {
                 filename: `${ordenFolio}.pdf`,
-                path: pdfFilePath
+                path: req.file.path
               }
             ]
           };
@@ -177,7 +193,7 @@ class OrdenTrabajoController {
           console.log('Correo enviado exitosamente');
 
           // Eliminar el archivo PDF después de enviarlo
-          await fsP.unlink(pdfFilePath);
+          // await fsP.unlink(pdfFilePath);
         } else {
           console.log('No se pudo encontrar el archivo PDF después de moverlo.');
         }
