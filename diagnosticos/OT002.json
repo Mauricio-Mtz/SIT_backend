@@ -1,65 +1,66 @@
 {
   "informacion": {
-    "fecha": "",
-    "direccion": ""
+    "fecha": "2024-08-21",
+    "direccion": "Dirección de la Sucursal 1"
   },
   "cliente": {
-    "nombre": "Pedro",
-    "apellido": "Ramírez",
-    "correo": "pedro@example.com",
-    "telefono": "5544332211",
+    "folio": "10000002",
+    "nombre": "Mauricio",
+    "apellido": "Martínez",
+    "correo": "maurimtz07@gmail.com",
+    "telefono": "4411108592",
     "codigo_postal": "76680",
-    "rfc": "1234567890123",
-    "direccion": "Calle de los Robles 456"
+    "rfc": "FMDJSKDUSJKFO",
+    "direccion": "Vicente Guerrero S/N"
   },
   "vehiculo": {
-    "modelo": "Fiesta",
-    "tipo": "Pequeño",
-    "marca": "Ford",
-    "color": "Rojo",
-    "placas": "ADH-153",
+    "modelo": "Audi A3",
+    "tipo": "9",
+    "marca": "Audi",
+    "color": "Verde",
+    "placas": "ABC-123",
     "numeroSerie": "1HGCA83636A223456",
-    "numeroMotor": "56789NHBJKMFE",
-    "kilometros": "23,489"
+    "numeroMotor": "123ABC789XYZ",
+    "kilometros": "50,000"
   },
   "inventario": {
     "exteriores": {
       "unidadLuces": false,
-      "cuartoLuces": true,
+      "cuartoLuces": false,
       "antena": false,
       "espejoLateral": true,
-      "cristales": false,
+      "cristales": true,
       "emblema": true,
-      "llantas": false,
+      "llantas": true,
       "taponRuedas": true,
-      "molduras": false,
-      "taponGasolina": true,
+      "molduras": true,
+      "taponGasolina": false,
       "carroceria": false,
-      "limpiadores": true
+      "limpiadores": false
     },
     "interiores": {
-      "instrumentosTablero": true,
+      "instrumentosTablero": false,
       "calefaccion": false,
-      "radio": true,
-      "encendedor": false,
-      "espejoRetrovisor": true,
+      "radio": false,
+      "encendedor": true,
+      "espejoRetrovisor": false,
       "ceniceros": true,
       "cinturones": true,
       "botonesInteriores": true,
-      "manijasInteriores": false,
+      "manijasInteriores": true,
       "tapetes": false,
-      "vestiduras": false,
+      "vestiduras": true,
       "bocinasClaxon": false
     }
   },
   "observaciones": {
-    "tanqueGasolina": "3/4",
+    "tanqueGasolina": "1/4",
     "accesorios": {
-      "gato": false,
+      "gato": true,
       "materialGato": true,
       "llaveRuedas": true,
-      "estucheHerramientas": true,
-      "trianguloSeguridad": true,
+      "estucheHerramientas": false,
+      "trianguloSeguridad": false,
       "llantaRefaccion": true,
       "extinguidor": false
     },
@@ -79,5 +80,5 @@
       "otras": ""
     }
   },
-  "descripcion": "El vehiculo tiene tal cosa"
+  "descripcion": "El vehículo cuenta con ciertos problemas en algunas secciones, no sabria distinguirlas"
 }

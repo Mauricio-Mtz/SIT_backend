@@ -1,26 +1,27 @@
 {
   "informacion": {
-    "fecha": "2024-08-02",
+    "fecha": "2024-08-21",
     "direccion": "Dirección de la Sucursal 1"
   },
   "cliente": {
-    "nombre": "Pedro",
-    "apellido": "Ramírez",
-    "correo": "pedro@example.com",
-    "telefono": "5544332211",
+    "folio": "10000002",
+    "nombre": "Mauricio",
+    "apellido": "Martínez",
+    "correo": "maurimtz07@gmail.com",
+    "telefono": "4411108592",
     "codigo_postal": "76680",
-    "rfc": "1234567890123",
-    "direccion": "Calle de los Robles 456"
+    "rfc": "FMDJSKDUSJKFO",
+    "direccion": null
   },
   "vehiculo": {
-    "modelo": "Fiesta",
-    "tipo": "Pequeño",
-    "marca": "Ford",
-    "color": "Rojo",
-    "placas": "ADH-153",
+    "modelo": "Audi A3",
+    "tipo": "9",
+    "marca": "Audi",
+    "color": "Verde",
+    "placas": "ABC-123",
     "numeroSerie": "1HGCA83636A223456",
-    "numeroMotor": "56789NHBJKMFE",
-    "kilometros": "23,489"
+    "numeroMotor": "123ABC789XYZ",
+    "kilometros": "50,000"
   },
   "paquetes": [
     {
@@ -47,7 +48,8 @@
       "precio": "16.50",
       "orden_id": 3,
       "refaccion_id": 2,
-      "status": 1
+      "status": 1,
+      "ganancia": "0.00"
     }
   ],
   "costos": {

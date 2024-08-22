@@ -171,16 +171,16 @@ class OrdenTrabajoModel {
     }
   }  
 
-  async finalizaDiagnostico(ordenId, estado) {
+  async finalizaDiagnostico(ordenFolio) {
     await this.connect();
     const connection = this.connection;
 
     try {
       const [result] = await this.connection.execute(`
         UPDATE orden_trabajo
-        SET estado = ?
-        WHERE id = ?
-      `,[estado, ordenId]);
+        SET estado = 'Cotizacion'
+        WHERE folio = ?
+      `,[ordenFolio]);
       return result.affectedRows;
     } catch (error) {
       await connection.rollback();

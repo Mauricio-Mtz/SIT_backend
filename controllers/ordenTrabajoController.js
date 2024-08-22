@@ -2,6 +2,18 @@ const fsP = require('fs').promises;
 const fs = require('fs');
 const path = require('path');
 const OrdenTrabajoModel = require('../models/ordenTrabajoModel');
+const nodemailer = require('nodemailer');
+
+// Configura el transporte de Nodemailer
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'maurimtz07@gmail.com', // tu correo electrónico
+    pass: 'rwxo xzjd ikrz yaxj' // tu contraseña de correo electrónico
+  }
+});
 
 class OrdenTrabajoController {
   constructor() {
@@ -66,35 +78,112 @@ class OrdenTrabajoController {
   }
 
   async guardarDiagnostico(req, res) {
-    const { diagnosticoCompleto, ordenId, ordenFolio, estado } = req.body;
+    const { ordenFolio, correo, diagnosticoCompleto } = req.body;
     const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
-  
+
     try {
-      fs.writeFileSync(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
-      const updatedRows = await this.ordenTrabajoModel.finalizaDiagnostico(ordenId, estado);
+      // Guardar el archivo JSON
+      await fsP.writeFile(filePath, JSON.stringify(JSON.parse(diagnosticoCompleto), null, 2), 'utf8');
+
+      // Guardar el archivo PDF si existe
+      if (req.file && req.file.path) {
+        console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
+
+        const pdfFilePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.pdf`);
+        console.log('Ruta final del archivo PDF:', pdfFilePath);
+
+        // Mover el archivo PDF a la ruta final
+        await fsP.rename(req.file.path, pdfFilePath);
+
+        // Verifica si el archivo PDF se ha movido correctamente
+        if (await fsP.access(pdfFilePath).then(() => true).catch(() => false)) {
+          console.log('Archivo PDF creado correctamente:', pdfFilePath);
+
+          // Enviar el archivo PDF por correo
+          const mailOptions = {
+            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            to: correo, // Dirección de correo proporcionada en el request
+            subject: `Diagnóstico ${ordenFolio}`,
+            text: 'Envío de diagnóstico de parte de Mecánico Express, se adjunta archivo en PDF del diagnóstico.',
+            attachments: [
+              {
+                filename: `${ordenFolio}.pdf`,
+                path: pdfFilePath
+              }
+            ]
+          };
+
+          // Enviar el correo
+          await transporter.sendMail(mailOptions);
+          console.log('Correo enviado exitosamente');
+
+          // Eliminar el archivo PDF después de enviarlo
+          await fsP.unlink(pdfFilePath);
+        } else {
+          console.log('No se pudo encontrar el archivo PDF después de moverlo.');
+        }
+      }
+
+      // Actualizar el estado del diagnóstico
+      const updatedRows = await this.ordenTrabajoModel.finalizaDiagnostico(ordenFolio);
       res.status(200).json({ message: 'Archivo guardado exitosamente', resultado: updatedRows });
     } catch (error) {
-      console.error(`Error al guardar el estado ${estado}:`, error);
+      console.error('Error al guardar el diagnóstico:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
 
   async modificarDiagnostico(req, res) {
-    const { diagnosticoCompleto, ordenFolio } = req.body;
+    const { ordenFolio, correo, diagnosticoCompleto } = req.body;
     const filePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.json`);
-  
+
     try {
       // Verifica si el archivo existe
       const fileExists = await fsP.access(filePath).then(() => true).catch(() => false);
-  
+
       // Escribe el contenido en el archivo (reemplaza si existe)
-      await fsP.writeFile(filePath, JSON.stringify(diagnosticoCompleto, null, 2), 'utf8');
-  
-      if (fileExists) {
-        res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
-      } else {
-        res.status(200).json({ message: 'Archivo creado exitosamente' });
+      await fsP.writeFile(filePath, JSON.stringify(JSON.parse(diagnosticoCompleto), null, 2), 'utf8');
+
+      // Guardar el archivo PDF si existe
+      if (req.file && req.file.path) {
+        console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
+
+        const pdfFilePath = path.join(__dirname, '..', 'diagnosticos', `${ordenFolio}.pdf`);
+        console.log('Ruta final del archivo PDF:', pdfFilePath);
+
+        // Mover el archivo PDF a la ruta final
+        await fsP.rename(req.file.path, pdfFilePath);
+
+        // Verifica si el archivo PDF se ha movido correctamente
+        if (await fsP.access(pdfFilePath).then(() => true).catch(() => false)) {
+          console.log('Archivo PDF creado correctamente:', pdfFilePath);
+
+          // Enviar el archivo PDF por correo
+          const mailOptions = {
+            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            to: correo, // Dirección de correo proporcionada en el request
+            subject: `Diagnóstico ${ordenFolio} Modificado`,
+            text: 'Debido a cambios realizados se reenvía de parte de Mecànico Express el diagnóstico, se adjunta archivo en PDF de la moficación del diagnóstico.',
+            attachments: [
+              {
+                filename: `${ordenFolio}.pdf`,
+                path: pdfFilePath
+              }
+            ]
+          };
+
+          // Enviar el correo
+          await transporter.sendMail(mailOptions);
+          console.log('Correo enviado exitosamente');
+
+          // Eliminar el archivo PDF después de enviarlo
+          await fsP.unlink(pdfFilePath);
+        } else {
+          console.log('No se pudo encontrar el archivo PDF después de moverlo.');
+        }
       }
+
+      res.status(200).json({ message: fileExists ? 'Archivo reemplazado exitosamente' : 'Archivo creado exitosamente' });
     } catch (error) {
       console.error('Error al guardar el diagnóstico:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
@@ -118,43 +207,120 @@ class OrdenTrabajoController {
   }
 
   async guardarCotizacion(req, res) {
-    const { ordenFolio, reparacion, cotizacionCompleta, estado } = req.body;
+    // Extraer datos JSON del body
+    const { ordenFolio, correo, reparacion, cotizacionCompleta } = req.body;
     const filePathCotizacion = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
     const filePathReparacion = path.join(__dirname, '..', 'reparaciones', `${ordenFolio}.json`);
-  
+
     try {
-      fs.writeFileSync(filePathCotizacion, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
-      fs.writeFileSync(filePathReparacion, JSON.stringify(reparacion, null, 2), 'utf8');
-  
-      // await this.ordenTrabajoModel.siguientePaso(ordenId, proceso, estado);
-  
-      res.status(200).json({ message: `${estado} guardado exitosamente` });
+      // Guardar JSON
+      await fsP.writeFile(filePathCotizacion, JSON.stringify(JSON.parse(cotizacionCompleta), null, 2), 'utf8');
+      await fsP.writeFile(filePathReparacion, JSON.stringify(JSON.parse(reparacion), null, 2), 'utf8');
+
+      // Guardar el archivo PDF si existe
+      if (req.file && req.file.path) {
+        console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
+
+        const pdfFilePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.pdf`);
+        console.log('Ruta final del archivo PDF:', pdfFilePath);
+
+        // Mover el archivo PDF a la ruta final
+        await fsP.rename(req.file.path, pdfFilePath);
+
+        // Verifica si el archivo PDF se ha movido correctamente
+        if (await fsP.access(pdfFilePath).then(() => true).catch(() => false)) {
+          console.log('Archivo PDF creado correctamente:', pdfFilePath);
+
+          // Enviar el archivo PDF por correo
+          const mailOptions = {
+            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            to: [correo], // Dirección de correo a la que se enviará el archivo
+            subject: `Cotización ${ordenFolio}`,
+            text: 'Envío de cotización de parte de Mecánico Express, se adjunta archivo en PDF de la cotización.',
+            attachments: [
+              {
+                filename: `${ordenFolio}.pdf`,
+                path: pdfFilePath
+              }
+            ]
+          };
+
+          // Enviar el correo
+          await transporter.sendMail(mailOptions);
+          console.log('Correo enviado exitosamente');
+
+          // Eliminar el archivo PDF después de enviarlo
+          await fsP.unlink(pdfFilePath);
+        } else {
+          console.log('No se pudo encontrar el archivo PDF después de moverlo.');
+        }
+      }
+
+      res.status(200).json({ message: 'Cotización guardada y enviada por correo exitosamente' });
     } catch (error) {
-      console.error(`Error al guardar el estado ${estado}:`, error);
+      console.error('Error al guardar y enviar la cotización:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
 
   async modificarCotizacion(req, res) {
-    const { cotizacionCompleta, reparacion, ordenFolio } = req.body;
-    const filePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
+    // Extraer datos JSON del body
+    const { ordenFolio, correo, reparacion, cotizacionCompleta } = req.body;
+    const filePathCotizacion = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.json`);
     const filePathReparacion = path.join(__dirname, '..', 'reparaciones', `${ordenFolio}.json`);
-  
+    
     try {
       // Verifica si el archivo existe
-      const fileExists = await fsP.access(filePath).then(() => true).catch(() => false);
-  
+      const fileExists = await fsP.access(filePathCotizacion).then(() => true).catch(() => false);
+    
       // Escribe el contenido en el archivo (reemplaza si existe)
-      await fsP.writeFile(filePath, JSON.stringify(cotizacionCompleta, null, 2), 'utf8');
-      await fsP.writeFile(filePathReparacion, JSON.stringify(reparacion, null, 2), 'utf8');
-  
-      if (fileExists) {
-        res.status(200).json({ message: 'Archivo reemplazado exitosamente' });
-      } else {
-        res.status(200).json({ message: 'Archivo creado exitosamente' });
+      await fsP.writeFile(filePathCotizacion, JSON.stringify(JSON.parse(cotizacionCompleta), null, 2), 'utf8');
+      await fsP.writeFile(filePathReparacion, JSON.stringify(JSON.parse(reparacion), null, 2), 'utf8');
+
+      // Guardar el archivo PDF si existe
+      if (req.file && req.file.path) {
+        console.log('Ruta temporal del archivo PDF recibido:', req.file.path);
+
+        const pdfFilePath = path.join(__dirname, '..', 'cotizaciones', `${ordenFolio}.pdf`);
+        console.log('Ruta final del archivo PDF:', pdfFilePath);
+
+        // Mover el archivo PDF a la ruta final
+        await fsP.rename(req.file.path, pdfFilePath);
+
+        // Verifica si el archivo PDF se ha movido correctamente
+        if (await fsP.access(pdfFilePath).then(() => true).catch(() => false)) {
+          console.log('Archivo PDF creado correctamente:', pdfFilePath);
+
+          // Enviar el archivo PDF por correo
+          const mailOptions = {
+            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            to: ['correo'],
+            subject: `Cotización ${ordenFolio} Modificada`,
+            text: 'Debido a cambios realizado en la cotización se reenvía la cotización de parte de Mecánico Express. Se adjunta archivo en PDF de la cotización modificada.',
+            attachments: [
+              {
+                filename: `${ordenFolio}.pdf`,
+                path: pdfFilePath
+              }
+            ]
+          };
+
+          // Enviar el correo
+          await transporter.sendMail(mailOptions);
+          console.log('Correo enviado exitosamente');
+
+          // Eliminar el archivo PDF después de enviarlo
+          await fsP.unlink(pdfFilePath);
+        } else {
+          console.log('No se pudo encontrar el archivo PDF después de moverlo.');
+        }
       }
+    
+      res.status(200).json({
+        message: fileExists ? 'Archivo reemplazado y enviado por correo exitosamente' : 'Archivo creado y enviado por correo exitosamente',
+      });
     } catch (error) {
-      console.error('Error al guardar el diagnóstico:', error);
+      console.error('Error al guardar y enviar la cotización:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
@@ -285,7 +451,6 @@ class OrdenTrabajoController {
     }
   }
   
-
   async agregarPaquete(req, res) {
     try {
       const resu = await this.ordenTrabajoModel.agregarPaquete(req.body);

@@ -1,19 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const ordenTrabajoController = require('../controllers/ordenTrabajoController');
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'temp/'); // Ruta temporal para guardar archivos antes de moverlos
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.originalname); // Usar el nombre original del archivo
+    }
+  });
+const upload = multer({ storage: storage });
 
 router.get('/obtenerTodas', ordenTrabajoController.obtenerTodas.bind(ordenTrabajoController));
 router.get('/obtenerPorEmpleado/:id', ordenTrabajoController.obtenerPorEmpleado.bind(ordenTrabajoController));
 router.delete('/eliminar/:id', ordenTrabajoController.eliminar.bind(ordenTrabajoController));
 
 router.get('/obtenerDiagnostico/:folio', ordenTrabajoController.obtenerDiagnostico.bind(ordenTrabajoController));
-router.post('/guardarDiagnostico', ordenTrabajoController.guardarDiagnostico.bind(ordenTrabajoController));
-router.post('/modificarDiagnostico', ordenTrabajoController.modificarDiagnostico.bind(ordenTrabajoController));
+router.post('/guardarDiagnostico', upload.single('pdf'), ordenTrabajoController.guardarDiagnostico.bind(ordenTrabajoController));
+router.post('/modificarDiagnostico', upload.single('pdf'), ordenTrabajoController.modificarDiagnostico.bind(ordenTrabajoController));
 
 router.get('/obtenerDetallesCotizacion/:id/:folio', ordenTrabajoController.obtenerDetallesCotizacion.bind(ordenTrabajoController));
 router.get('/obtenerCotizacion/:folio', ordenTrabajoController.obtenerCotizacion.bind(ordenTrabajoController));
-router.post('/guardarCotizacion', ordenTrabajoController.guardarCotizacion.bind(ordenTrabajoController));
-router.post('/modificarCotizacion', ordenTrabajoController.modificarCotizacion.bind(ordenTrabajoController));
+router.post('/guardarCotizacion', upload.single('pdf'), ordenTrabajoController.guardarCotizacion.bind(ordenTrabajoController));
+router.post('/modificarCotizacion', upload.single('pdf'), ordenTrabajoController.modificarCotizacion.bind(ordenTrabajoController));
 
 router.get('/obtenerReparacion/:folio', ordenTrabajoController.obtenerReparacion.bind(ordenTrabajoController));
 router.post('/modificarReparacion', ordenTrabajoController.modificarReparacion.bind(ordenTrabajoController));
