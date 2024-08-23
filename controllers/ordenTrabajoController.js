@@ -6,12 +6,12 @@ const nodemailer = require('nodemailer');
 
 // Configura el transporte de Nodemailer
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  host: 'smtp.titan.email',
   port: 465,
   secure: true,
   auth: {
-    user: 'maurimtz07@gmail.com', // tu correo electrónico
-    pass: 'rwxo xzjd ikrz yaxj' // tu contraseña de correo electrónico
+    user: 'reportes@mecanicoexpressqueretaro.com', // tu correo electrónico
+    pass: 'xyW_HMKuF+A{!~*' // tu contraseña de correo electrónico
   }
 });
 
@@ -80,7 +80,7 @@ class OrdenTrabajoController {
 
           // Enviar el archivo PDF por correo
           const mailOptions = {
-            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            from: 'reportes@mecanicoexpressqueretaro.com', // Reemplaza con tu email de remitente
             to: correo, // Dirección de correo proporcionada en el request
             subject: `Diagnóstico ${ordenFolio}`,
             text: 'Envío de diagnóstico de parte de Mecánico Express, se adjunta archivo en PDF del diagnóstico.',
@@ -139,7 +139,7 @@ class OrdenTrabajoController {
 
           // Enviar el archivo PDF por correo
           const mailOptions = {
-            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            from: 'reportes@mecanicoexpressqueretaro.com', // Reemplaza con tu email de remitente
             to: correo, // Dirección de correo proporcionada en el request
             subject: `Diagnóstico ${ordenFolio} Modificado`,
             text: 'Debido a cambios realizados se reenvía de parte de Mecànico Express el diagnóstico, se adjunta archivo en PDF de la moficación del diagnóstico.',
@@ -212,7 +212,7 @@ class OrdenTrabajoController {
 
           // Enviar el archivo PDF por correo
           const mailOptions = {
-            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            from: 'reportes@mecanicoexpressqueretaro.com', // Reemplaza con tu email de remitente
             to: [correo], // Dirección de correo a la que se enviará el archivo
             subject: `Cotización ${ordenFolio}`,
             text: 'Envío de cotización de parte de Mecánico Express, se adjunta archivo en PDF de la cotización.',
@@ -272,7 +272,7 @@ class OrdenTrabajoController {
 
           // Enviar el archivo PDF por correo
           const mailOptions = {
-            from: 'mecanico.express.qro@gmail.com', // Reemplaza con tu email de remitente
+            from: 'reportes@mecanicoexpressqueretaro.com', // Reemplaza con tu email de remitente
             to: ['correo'],
             subject: `Cotización ${ordenFolio} Modificada`,
             text: 'Debido a cambios realizado en la cotización se reenvía la cotización de parte de Mecánico Express. Se adjunta archivo en PDF de la cotización modificada.',
