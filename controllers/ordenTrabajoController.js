@@ -273,7 +273,7 @@ class OrdenTrabajoController {
           // Enviar el archivo PDF por correo
           const mailOptions = {
             from: 'reportes@mecanicoexpressqueretaro.com', // Reemplaza con tu email de remitente
-            to: ['correo'],
+            to: [correo],
             subject: `Cotización ${ordenFolio} Modificada`,
             text: 'Debido a cambios realizado en la cotización se reenvía la cotización de parte de Mecánico Express. Se adjunta archivo en PDF de la cotización modificada.',
             attachments: [

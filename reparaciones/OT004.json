@@ -1,0 +1,80 @@
+{
+  "informacion": {
+    "fecha": "2024-08-23",
+    "direccion": "Dirección de la Sucursal 1"
+  },
+  "cliente": {
+    "folio": "10000010",
+    "nombre": "Mauricio",
+    "apellido": "Martínez",
+    "correo": "maurimtz07@gmail.com",
+    "telefono": "4411108592",
+    "codigo_postal": "76680",
+    "rfc": "FMDJSKDUSJKFO",
+    "direccion": "Vicente Guerrero S/N"
+  },
+  "vehiculo": {
+    "modelo": "Peugeot 206",
+    "tipo": "2",
+    "marca": "Peugeot",
+    "color": "Verde",
+    "placas": "ABC-123",
+    "numeroSerie": "1HGCA83636A223456",
+    "numeroMotor": "123ABC789XYZ",
+    "kilometros": "50,000"
+  },
+  "paquetes": [
+    {
+      "id": 10,
+      "nombre": "Paquete II - Servicio Mayor",
+      "precio": 754,
+      "orden_id": 6,
+      "status": 1,
+      "realizado": false
+    },
+    {
+      "id": 11,
+      "nombre": "Paquete V - Frenos Delanteros",
+      "precio": 870,
+      "orden_id": 6,
+      "status": 1,
+      "realizado": false
+    }
+  ],
+  "refacciones": [
+    {
+      "id": 11,
+      "numero_parte": "123451",
+      "descripcion": "Filtro de aceite",
+      "cantidad": 1,
+      "precio": "25.99",
+      "orden_id": 6,
+      "refaccion_id": 1,
+      "status": 1,
+      "ganancia": "16.00"
+    },
+    {
+      "id": 12,
+      "numero_parte": "123454",
+      "descripcion": "Llanta",
+      "cantidad": 1,
+      "precio": "43.99",
+      "orden_id": 6,
+      "refaccion_id": 4,
+      "status": 1,
+      "ganancia": "38.00"
+    },
+    {
+      "id": 13,
+      "numero_parte": "123459",
+      "descripcion": "Amortiguador",
+      "cantidad": 1,
+      "precio": "50.99",
+      "orden_id": 6,
+      "refaccion_id": 10,
+      "status": 1,
+      "ganancia": "25.00"
+    }
+  ],
+  "notas": ""
+}
