@@ -18,11 +18,11 @@ class ProveedorModel {
 
   async registrar(proveedor) {
     await this.connect();
-    const { nombre, telefono, correo } = proveedor;
+    const { nombre, telefono_fijo, telefono_whatsapp, correo, cuenta_fiscal, direccion } = proveedor;
     try {
       const [result] = await this.connection.execute(
-        'INSERT INTO proveedor (nombre, telefono, correo) VALUES (?, ?, ?)',
-        [nombre, telefono, correo]
+        'INSERT INTO proveedor (nombre, telefono_fijo, telefono_whatsapp, correo, cuenta_fiscal, direccion) VALUES (?, ?, ?, ?, ?, ?)',
+        [nombre, telefono_fijo, telefono_whatsapp, correo, cuenta_fiscal, direccion]
       );
       return result.insertId;
     } catch (error) {
@@ -49,11 +49,11 @@ class ProveedorModel {
 
   async actualizar(id, proveedor) {
     await this.connect();
-    const { nombre, telefono, correo } = proveedor;
+    const { nombre, telefono_fijo, telefono_whatsapp, correo, cuenta_fiscal, direccion } = proveedor;
     try {
       const [result] = await this.connection.execute(
-        'UPDATE proveedor SET nombre = ?, telefono = ?, correo = ? WHERE id = ?',
-        [nombre, telefono, correo, id]
+        'UPDATE proveedor SET nombre = ?, telefono_fijo = ?, telefono_whatsapp = ?, correo = ?, cuenta_fiscal = ?, direccion = ?, WHERE id = ?',
+        [nombre, telefono_fijo, telefono_whatsapp, correo, cuenta_fiscal, direccion, id]
       );
       return result.affectedRows;
     } catch (error) {
