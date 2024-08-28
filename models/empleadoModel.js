@@ -19,18 +19,52 @@ class EmpleadoModel {
   async crearEmpleado(empleado) {
     await this.connect();
     const { nombre, apellido, telefono, correo, puesto, sucursal_id, usuario, clave } = empleado;
+    
+    const response = {
+      success: false,
+      message: '',
+      details: [],
+    };
+    
     try {
+      // Verificar duplicados
+      const [existingEmployee] = await this.connection.execute(
+        'SELECT correo, telefono, usuario FROM empleado WHERE correo = ? OR telefono = ? OR usuario = ?',
+        [correo, telefono, usuario]
+      );
+      
+      if (existingEmployee.length > 0) {
+        if (existingEmployee[0].correo === correo) {
+          response.details.push('El correo ya está en uso.');
+        }
+        if (existingEmployee[0].telefono === telefono) {
+          response.details.push('El teléfono ya está en uso.');
+        }
+        if (existingEmployee[0].usuario === usuario) {
+          response.details.push('El usuario ya está en uso.');
+        }
+        
+        response.message = 'Validación fallida';
+        return response;
+      }
+      
+      // Si no hay duplicados, proceder con la inserción
       const [result] = await this.connection.execute(
         'INSERT INTO empleado (nombre, apellido, telefono, correo, puesto, sucursal_id, usuario, clave) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [nombre, apellido, telefono, correo, puesto, sucursal_id, usuario, clave]
       );
-      return result.insertId;
+      
+      response.success = true;
+      response.message = 'Empleado creado exitosamente';
+      response.empleadoId = result.insertId;
+      
+      return response;
     } catch (error) {
       throw error;
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async obtenerEmpleado(id) {
     await this.connect();

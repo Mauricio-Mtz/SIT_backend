@@ -7,13 +7,19 @@ class EmpleadoController {
 
   async crearEmpleado(req, res) {
     try {
-      const empleadoId = await this.empleadoModel.crearEmpleado(req.body);
-      res.status(201).json({ message: 'Empleado creado', empleadoId });
+      const response = await this.empleadoModel.crearEmpleado(req.body);
+      
+      if (!response.success) {
+        return res.status(400).json(response);
+      }
+      
+      res.status(201).json({ message: response.message, empleadoId: response.empleadoId });
     } catch (error) {
       console.error('Error al crear el empleado:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+  
 
   async obtenerEmpleado(req, res) {
     try {
