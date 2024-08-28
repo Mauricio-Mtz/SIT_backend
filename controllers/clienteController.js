@@ -7,13 +7,18 @@ class ClienteController {
 
   async registrar(req, res) {
     try {
-      const clienteId = await this.clienteModel.registrar(req.body);
-      res.status(201).json({ message: 'Cliente creado', clienteId });
+      const response = await this.clienteModel.registrar(req.body);
+  
+      if (!response.success) {
+        return res.status(400).json(response);
+      }
+  
+      res.status(201).json({ message: response.message, clienteId: response.clienteId });
     } catch (error) {
       console.error('Error al crear el cliente:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
-  }
+  }  
 
   async obtenerUno(req, res) {
     try {
@@ -30,16 +35,22 @@ class ClienteController {
 
   async actualizar(req, res) {
     try {
-      const updatedRows = await this.clienteModel.actualizar(req.params.id, req.body);
-      if (updatedRows === 0) {
+      const response = await this.clienteModel.actualizar(req.params.id, req.body);
+  
+      if (!response.success) {
+        return res.status(400).json(response);
+      }
+  
+      if (response.affectedRows === 0) {
         return res.status(404).json({ message: 'Cliente no encontrado' });
       }
-      res.status(200).json({ message: 'Cliente actualizado' });
+  
+      res.status(200).json({ message: response.message });
     } catch (error) {
       console.error('Error al actualizar el cliente:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
-  }
+  }  
 
   async eliminar(req, res) {
     try {

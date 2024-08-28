@@ -19,18 +19,49 @@ class ClienteModel {
   async registrar(cliente) {
     await this.connect();
     const { nombre, apellido, telefono, correo, direccion } = cliente;
+    
+    const response = {
+      success: false,
+      message: '',
+      details: [],
+    };
+  
     try {
+      // Verificar duplicados
+      const [existingClient] = await this.connection.execute(
+        'SELECT correo, telefono FROM cliente WHERE correo = ? OR telefono = ?',
+        [correo, telefono]
+      );
+  
+      if (existingClient.length > 0) {
+        if (existingClient[0].correo === correo) {
+          response.details.push('El correo ya está en uso.');
+        }
+        if (existingClient[0].telefono === telefono) {
+          response.details.push('El teléfono ya está en uso.');
+        }
+        
+        response.message = 'Validación fallida';
+        return response;
+      }
+  
+      // Si no hay duplicados, proceder con la inserción
       const [result] = await this.connection.execute(
         'INSERT INTO cliente (nombre, apellido, telefono, correo, direccion) VALUES (?, ?, ?, ?, ?)',
         [nombre, apellido, telefono, correo, direccion]
       );
-      return result.insertId;
+  
+      response.success = true;
+      response.message = 'Cliente registrado exitosamente';
+      response.clienteId = result.insertId;
+  
+      return response;
     } catch (error) {
       throw error;
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async obtenerUno(id) {
     await this.connect();
@@ -50,18 +81,49 @@ class ClienteModel {
   async actualizar(id, cliente) {
     await this.connect();
     const { folio, nombre, apellido, telefono, correo, contrasena, direccion } = cliente;
+    
+    const response = {
+      success: false,
+      message: '',
+      details: [],
+    };
+  
     try {
+      // Verificar duplicados excluyendo el cliente actual
+      const [existingClient] = await this.connection.execute(
+        'SELECT correo, telefono FROM cliente WHERE (correo = ? OR telefono = ?) AND id != ?',
+        [correo, telefono, id]
+      );
+  
+      if (existingClient.length > 0) {
+        if (existingClient[0].correo === correo) {
+          response.details.push('El correo ya está en uso.');
+        }
+        if (existingClient[0].telefono === telefono) {
+          response.details.push('El teléfono ya está en uso.');
+        }
+        
+        response.message = 'Validación fallida';
+        return response;
+      }
+  
+      // Si no hay duplicados, proceder con la actualización
       const [result] = await this.connection.execute(
         'UPDATE cliente SET folio = ?, nombre = ?, apellido = ?, telefono = ?, correo = ?, contrasena = ?, direccion = ? WHERE id = ?',
         [folio, nombre, apellido, telefono, correo, contrasena, direccion, id]
       );
-      return result.affectedRows;
+  
+      response.success = true;
+      response.message = 'Cliente actualizado exitosamente';
+      response.affectedRows = result.affectedRows;
+  
+      return response;
     } catch (error) {
       throw error;
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async eliminar(id) {
     await this.connect();

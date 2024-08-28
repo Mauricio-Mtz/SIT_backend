@@ -84,18 +84,52 @@ class EmpleadoModel {
   async actualizarEmpleado(id, empleado) {
     await this.connect();
     const { nombre, apellido, telefono, correo, puesto, sucursal_id, usuario, clave } = empleado;
+    
+    const response = {
+      success: false,
+      message: '',
+      details: [],
+    };
+    
     try {
+      // Verificar duplicados excluyendo el empleado actual
+      const [existingEmployee] = await this.connection.execute(
+        'SELECT correo, telefono, usuario FROM empleado WHERE (correo = ? OR telefono = ? OR usuario = ?) AND id != ?',
+        [correo, telefono, usuario, id]
+      );
+      
+      if (existingEmployee.length > 0) {
+        if (existingEmployee[0].correo === correo) {
+          response.details.push('El correo ya está en uso.');
+        }
+        if (existingEmployee[0].telefono === telefono) {
+          response.details.push('El teléfono ya está en uso.');
+        }
+        if (existingEmployee[0].usuario === usuario) {
+          response.details.push('El usuario ya está en uso.');
+        }
+        
+        response.message = 'Validación fallida';
+        return response;
+      }
+      
+      // Si no hay duplicados, proceder con la actualización
       const [result] = await this.connection.execute(
         'UPDATE empleado SET nombre = ?, apellido = ?, telefono = ?, correo = ?, puesto = ?, sucursal_id = ?, usuario = ?, clave = ? WHERE id = ?',
         [nombre, apellido, telefono, correo, puesto, sucursal_id, usuario, clave, id]
       );
-      return result.affectedRows;
+      
+      response.success = true;
+      response.message = 'Empleado actualizado exitosamente';
+      response.affectedRows = result.affectedRows;
+      
+      return response;
     } catch (error) {
       throw error;
     } finally {
       await this.disconnect();
     }
-  }
+  }  
 
   async eliminarEmpleado(id) {
     await this.connect();

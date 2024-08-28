@@ -36,16 +36,22 @@ class EmpleadoController {
 
   async actualizarEmpleado(req, res) {
     try {
-      const updatedRows = await this.empleadoModel.actualizarEmpleado(req.params.id, req.body);
-      if (updatedRows === 0) {
+      const response = await this.empleadoModel.actualizarEmpleado(req.params.id, req.body);
+      
+      if (!response.success) {
+        return res.status(400).json(response);
+      }
+      
+      if (response.affectedRows === 0) {
         return res.status(404).json({ message: 'Empleado no encontrado' });
       }
-      res.status(200).json({ message: 'Empleado actualizado' });
+      
+      res.status(200).json({ message: response.message });
     } catch (error) {
       console.error('Error al actualizar el empleado:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
-  }
+  }  
 
   async eliminarEmpleado(req, res) {
     try {
