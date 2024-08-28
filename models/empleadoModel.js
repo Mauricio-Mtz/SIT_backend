@@ -96,6 +96,7 @@ class EmpleadoModel {
           empleado.apellido, 
           empleado.telefono, 
           empleado.correo, 
+          empleado.clave, 
           empleado.puesto, 
           sucursal.id AS sucursal_id, 
           sucursal.nombre AS sucursal, 

@@ -49,11 +49,11 @@ class ClienteModel {
 
   async actualizar(id, cliente) {
     await this.connect();
-    const { folio, nombre, apellido, telefono, correo, direccion } = cliente;
+    const { folio, nombre, apellido, telefono, correo, contrasena, direccion } = cliente;
     try {
       const [result] = await this.connection.execute(
-        'UPDATE cliente SET folio = ?, nombre = ?, apellido = ?, telefono = ?, correo = ?, direccion = ? WHERE id = ?',
-        [folio, nombre, apellido, telefono, correo, direccion, id]
+        'UPDATE cliente SET folio = ?, nombre = ?, apellido = ?, telefono = ?, correo = ?, contrasena = ?, direccion = ? WHERE id = ?',
+        [folio, nombre, apellido, telefono, correo, contrasena, direccion, id]
       );
       return result.affectedRows;
     } catch (error) {
